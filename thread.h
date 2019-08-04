@@ -4,6 +4,7 @@
 #include <iostream>
 #include <condition_variable>
 #include <thread>
+#include <atomic>
 
 using namespace std;
 
@@ -20,8 +21,12 @@ namespace lmc{
         virtual void run();
 
     private:
+        void destory();
+
+    private:
         condition_variable condition;
-        bool conditionStatus;
+        atomic<long> conditionStatus;
+        atomic<bool> bStop;
         thread t;
     };
 

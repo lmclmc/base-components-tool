@@ -6,12 +6,14 @@ using namespace lmc;
 
 Thread::Thread()
 {
+    bStop = true;
+    conditionStatus = 0;
+
     t = thread([this]{
         mutex localMutex;
         unique_lock<mutex> localLock(localMutex);
-        while (true){
-            condition.wait(localLock, [this]{return conditionStatus;});
-            conditionStatus = false;
+        while (bStop){
+            condition.wait(localLock, [this]{return conditionStatus?conditionStatus--:false;});
             run();
         }
     });
@@ -19,12 +21,12 @@ Thread::Thread()
 
 Thread::~Thread()
 {
-
+    destory();
 }
 
 void Thread::start()
 {
-    conditionStatus = true;
+    conditionStatus++;
     condition.notify_one();
 }
 
@@ -33,17 +35,25 @@ void Thread::run()
 
 }
 
+void Thread::destory()
+{
+    bStop = false;
+    start();
+    t.join();
+}
+
 testThread::testThread()
 {
-    start();
 }
 
 void testThread::test()
 {
     start();
 }
-
+#include <unistd.h>
 void testThread::run()
 {
-    cout << "gergaaa" << endl;
+    usleep(100000);
+    static int num = 0;
+    cout << "gergaaa   " << num++ << endl;
 }
