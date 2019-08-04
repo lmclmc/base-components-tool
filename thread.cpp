@@ -7,13 +7,13 @@ using namespace lmc;
 Thread::Thread()
 {
     bStop = true;
-    conditionStatus = 0;
+    cStatus = 0;
 
     t = thread([this]{
         mutex localMutex;
         unique_lock<mutex> localLock(localMutex);
         while (bStop){
-            condition.wait(localLock, [this]{return conditionStatus?conditionStatus--:false;});
+            c.wait(localLock, [this]{return cStatus?cStatus--:false;});
             run();
         }
     });
@@ -26,8 +26,8 @@ Thread::~Thread()
 
 void Thread::start()
 {
-    conditionStatus++;
-    condition.notify_one();
+    cStatus++;
+    c.notify_one();
 }
 
 void Thread::run()
@@ -56,4 +56,30 @@ void testThread::run()
     usleep(100000);
     static int num = 0;
     cout << "gergaaa   " << num++ << endl;
+}
+
+WorkQueue::WorkQueue() :
+    queue(make_shared<workqueue>())
+{
+    start();
+}
+
+WorkQueue::~WorkQueue()
+{
+
+}
+
+void WorkQueue::run()
+{
+    mutex localMutex;
+    unique_lock<mutex> localLock(localMutex);
+    shared_ptr<function<void()>> f;
+    shared_ptr<workqueue> q = queue;
+    while (true){
+        condition.wait(localLock, [&q, &f]{
+            return q->read(&f);
+        });
+        cout << "qwe" << endl;
+        (*f)();
+    }
 }

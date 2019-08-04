@@ -5,15 +5,17 @@ using namespace lmc;
 
 int main()
 {
-    testThread a;
+    WorkQueue a;
 
     while (1){
-        for (int i=0; i<100; i++){
-            a.test();
+        for (int i=0; i<10000; i++){
+            a.addTask([](int a){
+                cout << a << "         Hello fqwegqrg! ==" << endl;
+            }, i);
         }
         cout << "Hello World!\n\n\n" << endl;
         getchar();
-        a.test();
+
     }
 
     return 0;

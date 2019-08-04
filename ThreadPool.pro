@@ -7,6 +7,10 @@ SOURCES += main.cpp \
     thread.cpp
 
 HEADERS += \
-    thread.h
+    thread.h \
+    yqueue/yqueue.hpp \
+    yqueue/ypipe_base.hpp \
+    yqueue/ypipe.hpp \
+    yqueue/atomic_ptr.hpp
 
 QMAKE_CXXFLAGS += -pthread
