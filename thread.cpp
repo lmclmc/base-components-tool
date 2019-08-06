@@ -71,15 +71,17 @@ WorkQueue::~WorkQueue()
 
 void WorkQueue::run()
 {
-    mutex localMutex;
-    unique_lock<mutex> localLock(localMutex);
+//    mutex localMutex;
+//    unique_lock<mutex> localLock(localMutex);
     shared_ptr<function<void()>> f;
-    shared_ptr<workqueue> q = queue;
-    while (true){
-        condition.wait(localLock, [&q, &f]{
-            return q->read(&f);
-        });
-        cout << "qwe" << endl;
-        (*f)();
-    }
+//    shared_ptr<workqueue> q = queue;
+//    while (true){
+//        condition.wait(localLock, [&q, &f]{
+//            return q->read(&f);
+//        });
+//        (*f)();
+//    }
+    if (queue->read(&f))(*f)();
+    else cout << "err" << endl;
+
 }

@@ -12,6 +12,8 @@
 using namespace std;
 using namespace zmq;
 
+#define SIZE (10000)
+
 namespace lmc{
     class Thread
     {
@@ -36,7 +38,7 @@ namespace lmc{
 
     class WorkQueue : public Thread{
     public:
-        typedef ypipe_t<shared_ptr<function<void()>>, 10000> workqueue;
+        typedef ypipe_t<shared_ptr<function<void()>>, SIZE> workqueue;
 
         WorkQueue();
         ~WorkQueue();
@@ -51,7 +53,8 @@ namespace lmc{
             queue->write(make_shared<function<void()>>([task]{(*task)();}), false);
             queue->flush();
 
-            condition.notify_one();
+            //condition.notify_one();
+            start();
             return returnRes;
         }
 

@@ -1,17 +1,38 @@
 #include <iostream>
 #include "thread.h"
+#include <unistd.h>
 using namespace std;
 using namespace lmc;
+
+void asd(){
+    static int num = 0;
+   //     cout << num << endl;
+    if (num%100 == 0) cout << num << endl;
+        num++;
+
+}
+
+void qwe(WorkQueue& a){
+  //  for (int i=0;i<2000000;i++){
+       // ::usleep(100);
+        a.addTask(asd);
+   // }
+}
+
+void zxc(WorkQueue& a){
+    for (int i=0;i<2000000000;i++){
+        a.addTask(asd);
+    }
+}
 
 int main()
 {
     WorkQueue a;
 
     while (1){
-        for (int i=0; i<10000; i++){
-            a.addTask([](int a){
-                cout << a << "         Hello fqwegqrg! ==" << endl;
-            }, i);
+        for (int i=0;i<2000000000;i++){
+
+            a.addTask(asd);
         }
         cout << "Hello World!\n\n\n" << endl;
         getchar();
