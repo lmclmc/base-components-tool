@@ -4,13 +4,15 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    thread.cpp
+    workqueue.cpp \
+    lthread.cpp
 
 HEADERS += \
-    thread.h \
     yqueue/yqueue.hpp \
     yqueue/ypipe_base.hpp \
     yqueue/ypipe.hpp \
-    yqueue/atomic_ptr.hpp
+    yqueue/atomic_ptr.hpp \
+    workqueue.h \
+    lthread.h
 
 QMAKE_CXXFLAGS += -pthread

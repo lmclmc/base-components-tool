@@ -1,5 +1,5 @@
 #include <iostream>
-#include "thread.h"
+#include "workqueue.h"
 #include <unistd.h>
 using namespace std;
 using namespace lmc;

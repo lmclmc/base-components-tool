@@ -1,41 +1,16 @@
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef WORKQUEUE_H_
+#define WORKQUEUE_H_
 
-#include <iostream>
-#include <condition_variable>
-#include <thread>
-#include <atomic>
-#include <future>
-
+#include "lthread.h"
 #include "yqueue/ypipe.hpp"
 
-using namespace std;
+#include <future>
+#include <iostream>
+
 using namespace zmq;
+using namespace std;
 
-#define SIZE (10000)
-
-namespace lmc{
-    class Thread
-    {
-    public:
-        Thread();
-        ~Thread();
-
-        void start();
-
-    protected:
-        virtual void run();
-
-    private:
-        void destory();
-
-    private:
-        condition_variable c;
-        atomic<long> cStatus;
-        atomic<bool> bStop;
-        thread t;
-    };
-
+namespace lmc {
     class WorkQueue : public Thread{
     public:
         typedef ypipe_t<shared_ptr<function<void()>>, SIZE> workqueue;
@@ -53,7 +28,6 @@ namespace lmc{
             queue->write(make_shared<function<void()>>([task]{(*task)();}), false);
             queue->flush();
 
-            //condition.notify_one();
             start();
             return returnRes;
         }
@@ -62,19 +36,8 @@ namespace lmc{
         void run();
 
     private:
-        condition_variable condition;
         shared_ptr<workqueue> queue;
-    };
-
-    class testThread : public Thread{
-    public:
-        testThread();
-
-        void test();
-
-    protected:
-        void run();
     };
 }
 
-#endif // THREAD_H
+#endif
