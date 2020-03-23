@@ -7,7 +7,7 @@ using namespace lmc;
 void asd(){
     static int num = 0;
    //     cout << num << endl;
-    if (num%100 == 0) cout << num << endl;
+    if (num%1000000 == 0) cout << num << endl;
         num++;
 
 }

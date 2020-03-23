@@ -16,9 +16,8 @@ namespace lmc{
         Thread();
         ~Thread();
 
-        void start();
-
     protected:
+	void start();
         virtual void run();
 
     private:

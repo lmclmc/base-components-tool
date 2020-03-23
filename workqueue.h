@@ -6,6 +6,7 @@
 
 #include <future>
 #include <iostream>
+#include <functional>
 
 using namespace zmq;
 using namespace std;
@@ -33,7 +34,7 @@ namespace lmc {
         }
 
     protected:
-        void run();
+        void run() override;
 
     private:
         shared_ptr<workqueue> queue;
