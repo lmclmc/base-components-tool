@@ -23,10 +23,12 @@ namespace lmc {
         auto addTask(F&& f, Args&&... args) throw() ->
         future<typename result_of<F(Args...)>::type>{
             using returnType = typename result_of<F(Args...)>::type;
-            auto task = make_shared<packaged_task<returnType()>>(bind(forward<F>(f), forward<Args>(args)...));
+            auto task = make_shared<packaged_task<returnType()>>(bind(
+                                    forward<F>(f), forward<Args>(args)...));
             future<returnType> returnRes = task.get()->get_future();
 
-            queue->write(make_shared<function<void()>>([task]{(*task)();}), false);
+            queue->write(make_shared<function<void()>>([task]{(*task)();}),
+                                                        false);
             queue->flush();
 
             start();
