@@ -1,5 +1,6 @@
 #include <iostream>
 #include "workqueue.h"
+#include "ltimer.h"
 #include <unistd.h>
 using namespace std;
 using namespace lmc;
@@ -27,17 +28,29 @@ void zxc(WorkQueue& a){
 
 int main()
 {
-    WorkQueue a;
+    // WorkQueue a;
 
-    while (1){
-        for (int i=0;i<2000000000;i++){
+    // while (1){
+    //     for (int i=0;i<2000000000;i++){
 
-            a.addTask(asd);
-        }
-        cout << "Hello World!\n\n\n" << endl;
-        getchar();
+    //         a.addTask(asd);
+    //     }
+    //     cout << "Hello World!\n\n\n" << endl;
+    //     getchar();
 
+    // }
+
+    LTimer t;
+    t.setTimer(500, []{
+        cout << "qwe" << endl;
+    });
+
+    t.startTimer();
+
+    while (1)
+    {
+        ::usleep(1000000);
+        cout << "asd" << endl;
     }
-
     return 0;
 }
