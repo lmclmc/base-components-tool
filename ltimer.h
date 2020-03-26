@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <functional>
+#include <list>
 
 #include "workqueue.h"
 
@@ -16,17 +17,37 @@ public:
 
     ~LTimer() = default;
 
-    void setTimer(uint64_t time, function<void()> f);
+    void setTimer(uint64_t, const function<void()> &);
 
     void startTimer();
     void stopTimer();
     void clearTimer();
 
 private:
-    std::shared_ptr<WorkQueue> w;
-    function<void()> mFun;
-    uint64_t mTime;
+    void task();
+
+private:
+    typedef struct TaskNode_{
+        TaskNode_(uint64_t time_, uint64_t maxTime_, function<void()> task_) :
+            time(time_),
+            maxTime(maxTime_),
+            task(task_)
+        {}
+
+        uint64_t time;
+        uint64_t maxTime;
+        function<void()> task;
+    } TaskNode;
+
+    list<TaskNode> taskList;
+    list<function<void()>> taskQueue;
+
+    shared_ptr<WorkQueue> w;
+
     bool bStatus;
+    uint64_t timeStamp;
+
+    struct timeval tvS, tvE;
 };
 
 #endif

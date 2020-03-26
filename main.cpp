@@ -25,7 +25,9 @@ void zxc(WorkQueue& a){
         a.addTask(asd);
     }
 }
-
+#include <map>
+#define INSERT(num) m.insert(std::pair<int, string>(num, #num))
+#include <queue>
 int main()
 {
     // WorkQueue a;
@@ -42,15 +44,44 @@ int main()
 
     LTimer t;
     t.setTimer(500, []{
-        cout << "qwe" << endl;
+        static int a = 0;
+        a++;
+        cout << "1 ==" << a << endl;
+    });
+
+    t.setTimer(1000, []{
+        static int a = 0;
+        a++;
+        cout << "222 ==" << a << endl;
+    });
+
+    t.setTimer(300, []{
+        static int a = 0;
+        a++;
+        cout << "33333 ==" <<  a << endl;
+    });
+
+    t.setTimer(700, []{
+        static int a = 0;
+        a++;
+        cout << "4444444 ==" <<  a << endl;
+    });
+
+    t.setTimer(1500, []{
+        static int a = 0;
+        a++;
+        cout << "6666666666666 ==" <<  a << endl;
     });
 
     t.startTimer();
-
+    int a = 0;
     while (1)
     {
-        ::usleep(1000000);
-        cout << "asd" << endl;
+         ::usleep(3000000);
+         a++;
+         if (a > 5) t.stopTimer();
+         cout << "asd" << endl;
     }
+
     return 0;
 }
