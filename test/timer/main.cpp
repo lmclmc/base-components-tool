@@ -1,6 +1,6 @@
 #include <iostream>
-#include "workqueue.h"
-#include "ltimer.h"
+#include "threadpool/workqueue.h"
+#include "timer/ltimer.h"
 #include <unistd.h>
 using namespace std;
 using namespace lmc;

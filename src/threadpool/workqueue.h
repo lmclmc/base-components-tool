@@ -1,7 +1,7 @@
 #ifndef WORKQUEUE_H_
 #define WORKQUEUE_H_
 
-#include "lthread.h"
+#include "thread/lthread.h"
 #include "yqueue/ypipe.hpp"
 
 #include <future>

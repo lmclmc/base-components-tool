@@ -5,7 +5,7 @@
 #include <functional>
 #include <list>
 
-#include "workqueue.h"
+#include "threadpool/workqueue.h"
 
 using namespace std;
 using namespace lmc;
