@@ -43,7 +43,7 @@ int main()
     // }
 
     LTimer t;
-    t.setTimer(500, []{
+    t.setTimer(20, []{
         static int a = 0;
         a++;
         cout << "1 ==" << a << endl;
@@ -79,7 +79,6 @@ int main()
     {
          ::usleep(3000000);
          a++;
-         if (a > 5) t.stopTimer();
          cout << "asd" << endl;
     }
 

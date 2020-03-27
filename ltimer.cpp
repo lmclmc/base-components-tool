@@ -16,6 +16,11 @@ void LTimer::setTimer(uint64_t time, const function<void()> &f)
     taskList.emplace_back(time*1000, time*1000, f);
 }
 
+void LTimer::clearTimer()
+{
+    taskList.clear();
+}
+
 void LTimer::startTimer()
 {
     if (taskList.size() <= 0) return;
