@@ -10,6 +10,9 @@
 using namespace std;
 using namespace lmc;
 
+namespace lmc
+{
+
 class LTimer
 {
 public:
@@ -50,4 +53,5 @@ private:
     struct timeval tvS, tvE;
 };
 
+};
 #endif

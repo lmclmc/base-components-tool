@@ -12,35 +12,36 @@ using namespace zmq;
 using namespace std;
 
 namespace lmc {
-    class WorkQueue : public Thread{
-    public:
-        typedef ypipe_t<shared_ptr<function<void()>>, SIZE> workqueue;
 
-        WorkQueue();
-        ~WorkQueue();
+class WorkQueue : public Thread{
+public:
+    typedef ypipe_t<shared_ptr<function<void()>>, SIZE> workqueue;
 
-        template <typename F, typename... Args>
-        auto addTask(F&& f, Args&&... args) throw() ->
-        future<typename result_of<F(Args...)>::type>{
-            using returnType = typename result_of<F(Args...)>::type;
-            auto task = make_shared<packaged_task<returnType()>>(bind(
-                                    forward<F>(f), forward<Args>(args)...));
-            future<returnType> returnRes = task.get()->get_future();
+    WorkQueue();
+    ~WorkQueue();
 
-            queue->write(make_shared<function<void()>>([task]{(*task)();}),
-                                                        false);
-            queue->flush();
+    template <typename F, typename... Args>
+    auto addTask(F&& f, Args&&... args) throw() ->
+    future<typename result_of<F(Args...)>::type>{
+        using returnType = typename result_of<F(Args...)>::type;
+        auto task = make_shared<packaged_task<returnType()>>(bind(
+                                forward<F>(f), forward<Args>(args)...));
+        future<returnType> returnRes = task.get()->get_future();
 
-            start();
-            return returnRes;
-        }
+        queue->write(make_shared<function<void()>>([task]{(*task)();}), false);
+        queue->flush();
 
-    protected:
-        void run() override;
+        start();
+        return returnRes;
+    }
 
-    private:
-        shared_ptr<workqueue> queue;
-    };
+protected:
+    void run() override;
+
+private:
+    shared_ptr<workqueue> queue;
+};
+
 }
 
 #endif
