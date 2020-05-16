@@ -1,6 +1,3 @@
-#include <sys/time.h>
-#include <unistd.h>
-
 #include "ltimer.h"
 
 using namespace std;
@@ -27,7 +24,7 @@ void LTimer::startTimer()
         return;
     bStatus = true;
 
-    gettimeofday(&tvS, NULL);
+    tvS = std::chrono::system_clock::now().time_since_epoch().count();
 
     task();
 }
@@ -60,15 +57,11 @@ void LTimer::task()
             }
         }
 
-        gettimeofday(&this->tvE, NULL);
-        std::this_thread::sleep_for(std::chrono::microseconds(this->timeStamp -
-                                                              (this->tvE.tv_sec - this->tvS.tv_sec) * 1000000 -
-                                                              (this->tvE.tv_usec - this->tvS.tv_usec)));
-        // ::usleep(this->timeStamp -
-        //         (this->tvE.tv_sec - this->tvS.tv_sec) * 1000000 -
-        //         (this->tvE.tv_usec - this->tvS.tv_usec));
+        this->tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
 
-        gettimeofday(&this->tvS, NULL);
+        std::this_thread::sleep_for(std::chrono::microseconds(this->timeStamp + this->tvE - this->tvS));
+
+        this->tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
 
         for (auto &t : this->taskQueue)
         {

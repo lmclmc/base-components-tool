@@ -30,12 +30,13 @@ private:
     void task();
 
 private:
-    typedef struct TaskNode_{
-        TaskNode_(uint64_t time_, uint64_t maxTime_, function<void()> task_) :
-            time(time_),
-            maxTime(maxTime_),
-            task(task_)
-        {}
+    typedef struct TaskNode_
+    {
+        TaskNode_(uint64_t time_, uint64_t maxTime_, function<void()> task_) : time(time_),
+                                                                               maxTime(maxTime_),
+                                                                               task(task_)
+        {
+        }
 
         uint64_t time;
         uint64_t maxTime;
@@ -49,9 +50,8 @@ private:
 
     bool bStatus;
     uint64_t timeStamp;
-
-    struct timeval tvS, tvE;
+    uint64_t tvS, tvE;
 };
 
-};
+}; // namespace lmc
 #endif
