@@ -5,15 +5,15 @@
 
 using namespace std;
 
-LTimer::LTimer() :
-    bStatus(false),
-    w(make_shared<WorkQueue>()),
-    timeStamp(0)
-{}
+LTimer::LTimer() : bStatus(false),
+                   w(make_shared<WorkQueue>()),
+                   timeStamp(0)
+{
+}
 
 void LTimer::setTimer(uint64_t time, const function<void()> &f)
 {
-    taskList.emplace_back(time*1000, time*1000, f);
+    taskList.emplace_back(time * 1000, time * 1000, f);
 }
 
 void LTimer::clearTimer()
@@ -23,7 +23,8 @@ void LTimer::clearTimer()
 
 void LTimer::startTimer()
 {
-    if (taskList.size() <= 0) return;
+    if (taskList.size() <= 0)
+        return;
     bStatus = true;
 
     gettimeofday(&tvS, NULL);
@@ -38,7 +39,7 @@ void LTimer::stopTimer()
 
 void LTimer::task()
 {
-    w->addTask([this]{
+    w->addTask([this] {
         this->timeStamp = this->taskList.front().maxTime;
 
         for (auto &l : this->taskList)
@@ -60,9 +61,12 @@ void LTimer::task()
         }
 
         gettimeofday(&this->tvE, NULL);
-        ::usleep(this->timeStamp -
-                (this->tvE.tv_sec - this->tvS.tv_sec) * 1000000 -
-                (this->tvE.tv_usec - this->tvS.tv_usec));
+        std::this_thread::sleep_for(std::chrono::microseconds(this->timeStamp -
+                                                              (this->tvE.tv_sec - this->tvS.tv_sec) * 1000000 -
+                                                              (this->tvE.tv_usec - this->tvS.tv_usec)));
+        // ::usleep(this->timeStamp -
+        //         (this->tvE.tv_sec - this->tvS.tv_sec) * 1000000 -
+        //         (this->tvE.tv_usec - this->tvS.tv_usec));
 
         gettimeofday(&this->tvS, NULL);
 
@@ -73,7 +77,8 @@ void LTimer::task()
 
         this->taskQueue.clear();
 
-        if (!this->bStatus) return;
+        if (!this->bStatus)
+            return;
 
         this->task();
     });
