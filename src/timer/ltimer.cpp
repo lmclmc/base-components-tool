@@ -42,11 +42,10 @@ void LTimer::clearTimer()
 
 void LTimer::startTimer()
 {
-    if (taskList.size() <= 0)
-        return;
     bStatus = true;
 
-    tvS = std::chrono::system_clock::now().time_since_epoch().count();
+    tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+    tvE = tvS;
 
     task();
 }
@@ -60,52 +59,58 @@ void LTimer::task()
 {
     w->addTask([this] {
         mutex.lock();
-        this->timeStamp = this->taskList.front().maxTime;
-
-        for (auto &l : this->taskList)
+        if (this->taskList.size() > 0)
         {
-            if (this->timeStamp > l.time)
+            this->timeStamp = this->taskList.front().maxTime;
+
+            for (auto &l : this->taskList)
             {
-                this->timeStamp = l.time;
+                if (this->timeStamp > l.time)
+                {
+                    this->timeStamp = l.time;
+                }
             }
+
+            for (auto it = this->taskList.begin();
+                 it != this->taskList.end();)
+            {
+                it->time -= this->timeStamp;
+                if (it->time <= 0)
+                {
+                    it->count--;
+                    this->taskQueue.emplace_back(it->task);
+                    it->time = it->maxTime;
+                }
+
+                if (it->count == 0)
+                {
+                    it = this->taskList.erase(it);
+                }
+                else
+                {
+                    it++;
+                }
+            }
+
+            this->tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+
+            std::this_thread::sleep_for(std::chrono::microseconds(this->timeStamp + this->tvE - this->tvS));
+
+            this->tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+
+            for (auto &t : this->taskQueue)
+            {
+                t();
+            }
+
+            this->taskQueue.clear();
+        }
+        else
+        {
+            std::chrono::microseconds(1000);
         }
 
-        list<TaskNode>::iterator it = this->taskList.begin();
-
-        for (auto it = this->taskList.begin();
-             it != this->taskList.end();)
-        {
-            it->time -= this->timeStamp;
-            if (it->time <= 0)
-            {
-                it->count--;
-                this->taskQueue.emplace_back(it->task);
-                it->time = it->maxTime;
-            }
-
-            if (it->count == 0)
-            {
-                it = this->taskList.erase(it);
-            }
-            else
-            {
-                it++;
-            }
-        }
         mutex.unlock();
-
-        this->tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
-
-        std::this_thread::sleep_for(std::chrono::microseconds(this->timeStamp + this->tvE - this->tvS));
-
-        this->tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
-
-        for (auto &t : this->taskQueue)
-        {
-            t();
-        }
-
-        this->taskQueue.clear();
 
         if (!this->bStatus)
             return;

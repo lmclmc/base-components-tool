@@ -8,6 +8,9 @@ using namespace lmc;
 int main()
 {
     LTimer t;
+    t.startTimer();
+    ::usleep(1000000);
+
     uint64_t tes = t.setTimer(
         20, [] {
             static int a = 0;
@@ -47,7 +50,7 @@ int main()
         cout << "88888888888888888888888 ==" << a << endl;
     });
     std::cout << "yyyyyyyyy" << std::endl;
-    t.startTimer();
+
     int a = 0;
     ::usleep(30000000);
     t.removeTimer(tes);
