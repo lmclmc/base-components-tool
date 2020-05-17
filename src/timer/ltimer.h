@@ -20,7 +20,7 @@ public:
 
     ~LTimer() = default;
 
-    void setTimer(uint64_t, const function<void()> &);
+    void setTimer(uint64_t, const function<void()> &, int64_t count = -1);
 
     void startTimer();
     void stopTimer();
@@ -32,14 +32,19 @@ private:
 private:
     typedef struct TaskNode_
     {
-        TaskNode_(uint64_t time_, uint64_t maxTime_, function<void()> task_) : time(time_),
-                                                                               maxTime(maxTime_),
-                                                                               task(task_)
+        TaskNode_(uint64_t time_,
+                  uint64_t maxTime_,
+                  const function<void()> &task_,
+                  int64_t count_) : time(time_),
+                                    maxTime(maxTime_),
+                                    task(task_),
+                                    count(count_)
         {
         }
 
         uint64_t time;
         uint64_t maxTime;
+        uint64_t count;
         function<void()> task;
     } TaskNode;
 

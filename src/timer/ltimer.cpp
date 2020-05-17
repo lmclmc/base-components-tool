@@ -8,9 +8,9 @@ LTimer::LTimer() : bStatus(false),
 {
 }
 
-void LTimer::setTimer(uint64_t time, const function<void()> &f)
+void LTimer::setTimer(uint64_t time, const function<void()> &f, int64_t count)
 {
-    taskList.emplace_back(time * 1000, time * 1000, f);
+    taskList.emplace_back(time * 1000, time * 1000, f, count);
 }
 
 void LTimer::clearTimer()
@@ -47,13 +47,26 @@ void LTimer::task()
             }
         }
 
-        for (auto &l : this->taskList)
+        list<TaskNode>::iterator it = this->taskList.begin();
+        auto &ll = this->taskList;
+        for (auto it = this->taskList.begin();
+             it != ll.end();)
         {
-            l.time -= this->timeStamp;
-            if (l.time <= 0)
+            it->time -= this->timeStamp;
+            if (it->time <= 0)
             {
-                this->taskQueue.emplace_back(l.task);
-                l.time = l.maxTime;
+                it->count--;
+                this->taskQueue.emplace_back(it->task);
+                it->time = it->maxTime;
+            }
+
+            if (it->count == 0)
+            {
+                it = this->taskList.erase(it);
+            }
+            else
+            {
+                it++;
             }
         }
 
