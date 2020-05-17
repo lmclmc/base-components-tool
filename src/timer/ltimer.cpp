@@ -1,4 +1,5 @@
 #include "ltimer.h"
+#include "single/uuid.hpp"
 
 using namespace std;
 
@@ -8,9 +9,30 @@ LTimer::LTimer() : bStatus(false),
 {
 }
 
-void LTimer::setTimer(uint64_t time, const function<void()> &f, int64_t count)
+uint64_t LTimer::setTimer(uint64_t time, const function<void()> &f, int64_t count)
 {
-    taskList.emplace_back(time * 1000, time * 1000, f, count);
+    uint64_t uuid = UUID::generateUuid();
+    mutex.lock();
+    taskList.emplace_back(time * 1000, time * 1000, f, count, uuid);
+    mutex.unlock();
+    return uuid;
+}
+
+void LTimer::removeTimer(uint64_t uuid)
+{
+    mutex.lock();
+    for (auto it = taskList.begin(); it != taskList.end();)
+    {
+        if (it->uuid == uuid)
+        {
+            it = taskList.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+    mutex.unlock();
 }
 
 void LTimer::clearTimer()
@@ -37,6 +59,7 @@ void LTimer::stopTimer()
 void LTimer::task()
 {
     w->addTask([this] {
+        mutex.lock();
         this->timeStamp = this->taskList.front().maxTime;
 
         for (auto &l : this->taskList)
@@ -48,9 +71,9 @@ void LTimer::task()
         }
 
         list<TaskNode>::iterator it = this->taskList.begin();
-        auto &ll = this->taskList;
+
         for (auto it = this->taskList.begin();
-             it != ll.end();)
+             it != this->taskList.end();)
         {
             it->time -= this->timeStamp;
             if (it->time <= 0)
@@ -69,6 +92,7 @@ void LTimer::task()
                 it++;
             }
         }
+        mutex.unlock();
 
         this->tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
 

@@ -8,13 +8,12 @@ using namespace lmc;
 int main()
 {
     LTimer t;
-    t.setTimer(
+    uint64_t tes = t.setTimer(
         20, [] {
             static int a = 0;
             a++;
             cout << "1 ==" << a << endl;
-        },
-        1500);
+        });
 
     t.setTimer(1000, [] {
         static int a = 0;
@@ -22,11 +21,13 @@ int main()
         cout << "222 ==" << a << endl;
     });
 
-    t.setTimer(300, [] {
-        static int a = 0;
-        a++;
-        cout << "33333 ==" << a << endl;
-    });
+    t.setTimer(
+        300, [] {
+            static int a = 0;
+            a++;
+            cout << "33333 ==" << a << endl;
+        },
+        120);
 
     t.setTimer(700, [] {
         static int a = 0;
@@ -48,6 +49,8 @@ int main()
     std::cout << "yyyyyyyyy" << std::endl;
     t.startTimer();
     int a = 0;
+    ::usleep(30000000);
+    t.removeTimer(tes);
     while (1)
     {
         ::usleep(3000000);

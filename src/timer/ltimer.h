@@ -6,6 +6,7 @@
 #include <list>
 
 #include "threadpool/workqueue.h"
+#include "single/spinmutex.hpp"
 
 using namespace std;
 using namespace lmc;
@@ -20,7 +21,8 @@ public:
 
     ~LTimer() = default;
 
-    void setTimer(uint64_t, const function<void()> &, int64_t count = -1);
+    uint64_t setTimer(uint64_t, const function<void()> &, int64_t count = -1);
+    void removeTimer(uint64_t uuid);
 
     void startTimer();
     void stopTimer();
@@ -35,16 +37,19 @@ private:
         TaskNode_(uint64_t time_,
                   uint64_t maxTime_,
                   const function<void()> &task_,
-                  int64_t count_) : time(time_),
+                  int64_t count_,
+                  uint64_t uuid_) : time(time_),
                                     maxTime(maxTime_),
                                     task(task_),
-                                    count(count_)
+                                    count(count_),
+                                    uuid(uuid_)
         {
         }
 
         uint64_t time;
         uint64_t maxTime;
         uint64_t count;
+        uint64_t uuid;
         function<void()> task;
     } TaskNode;
 
@@ -56,6 +61,8 @@ private:
     bool bStatus;
     uint64_t timeStamp;
     uint64_t tvS, tvE;
+
+    SpinMutex mutex;
 };
 
 }; // namespace lmc
