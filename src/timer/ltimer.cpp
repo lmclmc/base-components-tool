@@ -2,6 +2,7 @@
 #include "single/uuid.hpp"
 
 using namespace std;
+using namespace lmc;
 
 LTimer::LTimer() : bStatus(false),
                    w(make_shared<WorkQueue>()),

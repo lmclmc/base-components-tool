@@ -3,6 +3,8 @@
 
 #include <atomic>
 
+namespace lmc
+{
 class SpinMutex
 {
 
@@ -28,5 +30,6 @@ public:
 private:
     std::atomic<bool> flag_;
 };
+}
 
 #endif

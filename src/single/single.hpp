@@ -3,11 +3,8 @@
 
 #include <mutex>
 
-using namespace std;
-
 namespace lmc
 {
-
 template<typename T>
 class TypeSingle
 {
@@ -36,7 +33,7 @@ private:
 };
 
 template<typename T>
-mutex TypeSingle<T>::sMutex;
+std::mutex TypeSingle<T>::sMutex;
 
 template<typename T>
 T *TypeSingle<T>::instance = nullptr;

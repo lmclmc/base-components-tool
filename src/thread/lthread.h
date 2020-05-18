@@ -7,8 +7,6 @@
 
 #define SIZE (10000)
 
-using namespace std;
-
 namespace lmc{
     class Thread
     {
@@ -24,10 +22,10 @@ namespace lmc{
         void destory();
 
     private:
-        condition_variable c;
-        atomic<long> cStatus;
-        atomic<bool> bStop;
-        thread t;
+        std::condition_variable c;
+        std::atomic<long> cStatus;
+        std::atomic<bool> bStop;
+        std::thread t;
     };
 }
 

@@ -3,6 +3,7 @@
 #include <mutex>
 
 using namespace lmc;
+using namespace std;
 
 Thread::Thread()
 {

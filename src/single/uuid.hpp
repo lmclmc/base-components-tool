@@ -3,6 +3,8 @@
 
 #include <random>
 
+namespace lmc
+{
 class UUID
 {
 public:
@@ -14,5 +16,6 @@ public:
     return uuid;
   }
 };
+}
 
 #endif
