@@ -9,7 +9,7 @@ template<typename T>
 class TypeSingle
 {
 public:
-    static T *getInstance()
+    inline static T *getInstance()
     {
         if (nullptr == instance)
         {
