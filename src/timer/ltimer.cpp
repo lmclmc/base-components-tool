@@ -2,7 +2,6 @@
 #include "single/uuid.hpp"
 
 using namespace std;
-using namespace lmc;
 
 LTimer::LTimer() : bStatus(false),
                    w(make_shared<WorkQueue>()),
@@ -38,7 +37,9 @@ void LTimer::removeTimer(uint64_t uuid)
 
 void LTimer::clearTimer()
 {
+    mutex.lock();
     taskList.clear();
+    mutex.unlock();
 }
 
 void LTimer::startTimer()
@@ -59,9 +60,9 @@ void LTimer::stopTimer()
 void LTimer::task()
 {
     w->addTask([this] {
-        mutex.lock();
         if (this->taskList.size() > 0)
         {
+            mutex.lock();
             this->timeStamp = this->taskList.front().maxTime;
 
             for (auto &l : this->taskList)
@@ -78,9 +79,11 @@ void LTimer::task()
                 it->time -= this->timeStamp;
                 if (it->time <= 0)
                 {
-                    it->count--;
+                    if (it->count > 0)
+                        it->count--;
                     this->taskQueue.emplace_back(it->task);
                     it->time = it->maxTime;
+
                 }
 
                 if (it->count == 0)
@@ -92,6 +95,8 @@ void LTimer::task()
                     it++;
                 }
             }
+
+            mutex.unlock();
 
             this->tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
 
@@ -108,10 +113,8 @@ void LTimer::task()
         }
         else
         {
-            std::chrono::microseconds(1000);
+            std::this_thread::sleep_for(std::chrono::microseconds(10000));
         }
-
-        mutex.unlock();
 
         if (!this->bStatus)
             return;

@@ -8,8 +8,12 @@
 #include "threadpool/workqueue.h"
 #include "single/spinmutex.hpp"
 
+using namespace std;
+using namespace lmc;
+
 namespace lmc
 {
+
 class LTimer
 {
 public:
@@ -17,11 +21,35 @@ public:
 
     ~LTimer() = default;
 
-    uint64_t setTimer(uint64_t, const std::function<void()> &, int64_t count = -1);
+    /**
+     * @brief setTimer 设置定时器
+     * @param time 隔多长时间触发一次 单位毫秒
+     * @param f 需要执行的任务
+     * @param count 调用次数，-1表示调用无限次
+     * @return 返回uuid，就靠这个uuid移除该任务
+     */
+    uint64_t setTimer(uint64_t time, const function<void()> &f,
+                      int64_t count = -1);
+
+    /**
+     * @brief removeTimer 根据uuid移除定时器任务
+     * @param uuid      设置uuid参数
+     */
     void removeTimer(uint64_t uuid);
 
+    /**
+     * @brief startTimer 开启定时器
+     */
     void startTimer();
+
+    /**
+     * @brief stopTimer 暂停定时器
+     */
     void stopTimer();
+
+    /**
+     * @brief clearTimer 清除定时器任务
+     */
     void clearTimer();
 
 private:
@@ -32,7 +60,7 @@ private:
     {
         TaskNode_(uint64_t time_,
                   uint64_t maxTime_,
-                  const std::function<void()> &task_,
+                  const function<void()> &task_,
                   int64_t count_,
                   uint64_t uuid_) : time(time_),
                                     maxTime(maxTime_),
@@ -46,20 +74,20 @@ private:
         uint64_t maxTime;
         uint64_t count;
         uint64_t uuid;
-        std::function<void()> task;
+        function<void()> task;
     } TaskNode;
 
-    std::list<TaskNode> taskList;
-    std::list<function<void()>> taskQueue;
+    list<TaskNode> taskList;
+    list<function<void()>> taskQueue;
 
-    std::shared_ptr<lmc::WorkQueue> w;
+    shared_ptr<WorkQueue> w;
 
     bool bStatus;
     uint64_t timeStamp;
     uint64_t tvS, tvE;
 
-    lmc::SpinMutex mutex;
+    SpinMutex mutex;
 };
-}; // namespace lmc
 
+}; // namespace lmc
 #endif
