@@ -11,7 +11,7 @@ int main()
     t.startTimer();
 
     uint64_t tes = t.setTimer(
-        10, [] {
+        100, [] {
             static int a = 0;
             a++;
             cout << "1 ==" << a << endl;
@@ -50,8 +50,12 @@ int main()
      std::cout << "yyyyyyyyy" << std::endl;
 
 
-sleep(300);
+sleep(30);
  std::cout << "===================" << std::endl;
+return 0;
+
+pause();
+
     // t.removeTimer(tes);
     // while (1)
     // {

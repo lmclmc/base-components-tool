@@ -2,8 +2,7 @@
 
 using namespace lmc;
 
-WorkQueue::WorkQueue() :
-    queue(make_shared<workqueue>())
+WorkQueue::WorkQueue()
 {
     start();
 }
@@ -15,8 +14,9 @@ WorkQueue::~WorkQueue()
 
 void WorkQueue::run()
 {
-    shared_ptr<function<void()>> f;
+    if (workqueue.empty()) return;
 
-    if (queue->read(&f)) (*f)();
-    else cout << "err" << endl;
+    function<void()> f = move(workqueue.front());
+    workqueue.pop();
+    f();
 }

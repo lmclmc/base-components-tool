@@ -2,21 +2,18 @@
 #define WORKQUEUE_H_
 
 #include "thread/lthread.h"
-#include "yqueue/ypipe.hpp"
 
 #include <future>
 #include <iostream>
 #include <functional>
+#include <queue>
 
-using namespace zmq;
 using namespace std;
 
 namespace lmc {
 
 class WorkQueue : public Thread{
 public:
-    typedef ypipe_t<shared_ptr<function<void()>>, SIZE> workqueue;
-
     WorkQueue();
     ~WorkQueue();
 
@@ -28,8 +25,7 @@ public:
                                 forward<F>(f), forward<Args>(args)...));
         future<returnType> returnRes = task.get()->get_future();
 
-        queue->write(make_shared<function<void()>>([task]{(*task)();}), false);
-        queue->flush();
+        workqueue.emplace([task]{(*task)();});
 
         start();
         return returnRes;
@@ -39,7 +35,7 @@ protected:
     void run() override;
 
 private:
-    shared_ptr<workqueue> queue;
+    queue<function<void()>> workqueue;
 };
 
 }
