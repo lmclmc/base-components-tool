@@ -9,10 +9,9 @@ int main()
 {
     LTimer t;
     t.startTimer();
-    ::usleep(1000000);
 
     uint64_t tes = t.setTimer(
-        20, [] {
+        10, [] {
             static int a = 0;
             a++;
             cout << "1 ==" << a << endl;
@@ -29,8 +28,7 @@ int main()
             static int a = 0;
             a++;
             cout << "33333 ==" << a << endl;
-        },
-        120);
+        });
 
     t.setTimer(700, [] {
         static int a = 0;
@@ -49,17 +47,18 @@ int main()
         a++;
         cout << "88888888888888888888888 ==" << a << endl;
     });
-    std::cout << "yyyyyyyyy" << std::endl;
+     std::cout << "yyyyyyyyy" << std::endl;
 
-    int a = 0;
-    ::usleep(30000000);
-    t.removeTimer(tes);
-    while (1)
-    {
-        ::usleep(3000000);
-        a++;
-        cout << "asd" << endl;
-    }
+
+sleep(300);
+ std::cout << "===================" << std::endl;
+    // t.removeTimer(tes);
+    // while (1)
+    // {
+    //     ::usleep(3000000);
+    //     a++;
+    //     cout << "asd" << endl;
+    // }
 
     return 0;
 }

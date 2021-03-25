@@ -5,7 +5,8 @@ using namespace std;
 
 LTimer::LTimer() : bStatus(false),
                    w(make_shared<WorkQueue>()),
-                   timeStamp(0)
+                   timeStamp(0),
+                   tmpTimeStamp(1000000)
 {
 }
 
@@ -14,6 +15,7 @@ uint64_t LTimer::setTimer(uint64_t time, const function<void()> &f, int64_t coun
     uint64_t uuid = UUID::generateUuid();
     mutex.lock();
     taskList.emplace_back(time * 1000, time * 1000, f, count, uuid);
+    tmpTimeStamp = tmpTimeStamp > time*1000 ? time*1000 : tmpTimeStamp;
     mutex.unlock();
     return uuid;
 }
@@ -63,20 +65,14 @@ void LTimer::task()
         if (this->taskList.size() > 0)
         {
             mutex.lock();
-            this->timeStamp = this->taskList.front().maxTime;
-
-            for (auto &l : this->taskList)
-            {
-                if (this->timeStamp > l.time)
-                {
-                    this->timeStamp = l.time;
-                }
-            }
+            this->timeStamp = this->tmpTimeStamp;
+            this->tmpTimeStamp = 10000000;
 
             for (auto it = this->taskList.begin();
                  it != this->taskList.end();)
             {
                 it->time -= this->timeStamp;
+
                 if (it->time <= 0)
                 {
                     if (it->count > 0)
@@ -85,6 +81,9 @@ void LTimer::task()
                     it->time = it->maxTime;
 
                 }
+
+                if (it->time < this->tmpTimeStamp)
+                    this->tmpTimeStamp = it->time;
 
                 if (it->count == 0)
                 {
@@ -113,7 +112,7 @@ void LTimer::task()
         }
         else
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(10000));
+            std::this_thread::sleep_for(std::chrono::microseconds(1000));
         }
 
         if (!this->bStatus)

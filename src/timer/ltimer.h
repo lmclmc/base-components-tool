@@ -70,9 +70,9 @@ private:
         {
         }
 
-        uint64_t time;
-        uint64_t maxTime;
-        uint64_t count;
+        int64_t time;
+        int64_t maxTime;
+        int64_t count;
         uint64_t uuid;
         function<void()> task;
     } TaskNode;
@@ -84,6 +84,7 @@ private:
 
     bool bStatus;
     uint64_t timeStamp;
+    uint64_t tmpTimeStamp;
     uint64_t tvS, tvE;
 
     SpinMutex mutex;

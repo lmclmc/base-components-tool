@@ -18,7 +18,7 @@ void asd(){
 int main()
 {
     
-     WorkQueue *a = TypeSingle<WorkQueue>::getInstance();
+    WorkQueue *a = TypeSingle<WorkQueue>::getInstance();
     while (1)
     {
         a->addTask(asd);
