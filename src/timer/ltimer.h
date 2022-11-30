@@ -70,10 +70,10 @@ private:
         {
         }
 
-        int64_t time;
-        int64_t maxTime;
-        int64_t count;
-        uint64_t uuid;
+        int64_t time;     //任务准备时间，该时间不断更新，当准备时间为0时，执行任务
+        int64_t maxTime;  //任务超时时间
+        int64_t count;    //任务执行次数，-1代表无限执行
+        uint64_t uuid;    //任务uuid
         function<void()> task;
     } TaskNode;
 
@@ -82,9 +82,9 @@ private:
 
     shared_ptr<WorkQueue> w;
 
-    bool bStatus;
-    uint64_t timeStamp;
-    uint64_t tmpTimeStamp;
+    bool bStatus;  //是否开启定时器
+    uint64_t timeStamp; //时间戳
+    uint64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，更新为最近的任务的时间。
     uint64_t tvS, tvE;
 
     SpinMutex mutex;
