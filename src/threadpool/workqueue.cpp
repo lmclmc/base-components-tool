@@ -2,21 +2,57 @@
 
 using namespace lmc;
 
-WorkQueue::WorkQueue()
+void SMutex::setMutexType(MutexType m)
 {
+    mMutexType = m;
+}
+
+void SMutex::lock()
+{
+    switch (mMutexType)
+    {
+        case MutexType::Mutex:
+        mMutex.lock();
+        break;
+        case MutexType::Spin:
+        mSpinMutex.lock();
+        break;
+    }
+}
+
+void SMutex::unlock()
+{
+    switch (mMutexType)
+    {
+        case MutexType::Mutex:
+        mMutex.unlock();
+        break;
+        case MutexType::Spin:
+        mSpinMutex.unlock();
+        break;
+    }
+}
+
+WorkQueue::WorkQueue(MutexType m)
+{
+    mutex.setMutexType(m);
     start();
 }
 
 WorkQueue::~WorkQueue()
 {
-
+    while (!workqueue.empty()) 
+        workqueue.pop();
 }
 
 void WorkQueue::run()
 {
     if (workqueue.empty()) return;
 
+    mutex.lock();
     function<void()> f = move(workqueue.front());
     workqueue.pop();
+    mutex.unlock();
+
     f();
 }

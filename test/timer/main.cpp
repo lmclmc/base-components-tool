@@ -15,6 +15,7 @@ int main()
             static uint64_t tvS = 0;
             static uint64_t tvE = 0;
             tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            usleep(70000);
             cout << "100ms delay test " << (tvS - tvE)/1000 << endl;
             tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
         });
@@ -58,14 +59,17 @@ int main()
         cout << "3000ms delay test " << (tvS - tvE)/1000 << endl;
         tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
     });
-     std::cout << "yyyyyyyyy" << std::endl;
 
-
-    sleep(30);
+    sleep(10);
     std::cout << "remove 100ms and 300ms delay task" << std::endl;
     t->removeTimer(timer100);
     t->removeTimer(timer300);
 
+    sleep(10);
+    t->clearTimer();
+
+    sleep(5);
+    TypeSingle<LTimer>::destory();
     pause();
 
     return 0;

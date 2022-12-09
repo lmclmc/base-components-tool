@@ -9,6 +9,22 @@ template<typename T>
 class TypeSingle
 {
 public:
+    template<typename ...Args>
+    inline static T *getInstance(Args &&...args)
+    {
+        if (nullptr == instance)
+        {
+            sMutex.lock();
+            if (nullptr == instance)
+            {
+                instance = new T(args...);
+            }
+            sMutex.unlock();
+        }
+
+        return instance;
+    }
+
     inline static T *getInstance()
     {
         if (nullptr == instance)
@@ -22,6 +38,17 @@ public:
         }
 
         return instance;
+    }
+
+    static bool destory()
+    {
+        sMutex.lock();
+        if (nullptr != instance)
+        {
+            delete instance;
+            instance = nullptr;
+        }
+        sMutex.unlock();
     }
 
 private:

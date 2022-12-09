@@ -31,11 +31,6 @@ void Thread::start()
     c.notify_one();
 }
 
-void Thread::run()
-{
-
-}
-
 void Thread::destory()
 {
     bStop = false;

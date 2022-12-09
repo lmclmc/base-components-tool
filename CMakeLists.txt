@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 project(Base)
 
 set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_CXX_FLAGS  "-std=c++11 -s")
+set(CMAKE_CXX_FLAGS  "-std=c++11 -g")
 
 include_directories(src)
 

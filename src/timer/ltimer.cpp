@@ -4,10 +4,19 @@
 using namespace std;
 
 LTimer::LTimer() : bStatus(false),
-                   w(make_shared<WorkQueue>()),
+                   w(make_shared<WorkQueue>(MutexType::Spin)),
                    timeStamp(0),
                    tmpTimeStamp(1000000)
 {
+}
+
+LTimer::~LTimer()
+{
+    stopTimer();
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
+    w = nullptr;
+    taskList.clear();
+    taskQueue.clear();
 }
 
 uint64_t LTimer::setTimer(uint64_t time, const function<void()> &f, int64_t count)

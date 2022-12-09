@@ -19,7 +19,7 @@ class LTimer
 public:
     LTimer();
 
-    ~LTimer() = default;
+    ~LTimer();
 
     /**
      * @brief setTimer 设置定时器

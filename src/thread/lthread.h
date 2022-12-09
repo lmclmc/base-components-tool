@@ -16,7 +16,7 @@ namespace lmc{
 
     protected:
 	void start();
-        virtual void run();
+    virtual void run(){}
 
     private:
         void destory();
