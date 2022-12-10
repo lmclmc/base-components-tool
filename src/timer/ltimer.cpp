@@ -4,7 +4,7 @@
 using namespace std;
 
 LTimer::LTimer() : bStatus(false),
-                   w(make_shared<WorkQueue>(MutexType::Spin)),
+                   w(make_shared<WorkQueue>(MutexType::None)),
                    timeStamp(0),
                    tmpTimeStamp(1000000)
 {

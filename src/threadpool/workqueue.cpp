@@ -17,6 +17,9 @@ void SMutex::lock()
         case MutexType::Spin:
         mSpinMutex.lock();
         break;
+        case MutexType::None:
+        return;
+        break;
     }
 }
 
@@ -29,6 +32,9 @@ void SMutex::unlock()
         break;
         case MutexType::Spin:
         mSpinMutex.unlock();
+        break;
+        case MutexType::None:
+        return;
         break;
     }
 }

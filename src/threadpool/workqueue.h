@@ -16,6 +16,7 @@ namespace lmc {
 
 enum class MutexType: unsigned char
 {
+    None,
     Spin,
     Mutex,
 };
