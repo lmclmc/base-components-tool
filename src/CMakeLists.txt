@@ -9,3 +9,10 @@ aux_source_directory(./single/ BASE_FILES)
 add_library(core SHARED ${BASE_FILES})
 
 target_link_libraries(core pthread)
+
+install(DIRECTORY ${PROJECT_BINARY_DIR}/src/libcore.so DESTINATION ${PROJECT_BINARY_DIR}/lib/)
+install(DIRECTORY single/ DESTINATION ${PROJECT_BINARY_DIR}/include/single/)
+install(FILES log/log.h DESTINATION ${PROJECT_BINARY_DIR}/include/log/)
+install(FILES thread/lthread.h DESTINATION ${PROJECT_BINARY_DIR}/include/thread/)
+install(FILES threadpool/workqueue.h DESTINATION ${PROJECT_BINARY_DIR}/include/threadpool/)
+install(FILES timer/ltimer.h DESTINATION ${PROJECT_BINARY_DIR}/include/timer/)

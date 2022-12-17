@@ -8,3 +8,6 @@ add_executable(timer ${TIMER_FILES})
 
 target_link_libraries(threadpool core)
 target_link_libraries(timer core)
+
+install(DIRECTORY ${PROJECT_BINARY_DIR}/test/threadpool DESTINATION ${PROJECT_BINARY_DIR}/bin/)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/test/timer DESTINATION ${PROJECT_BINARY_DIR}/bin/)
