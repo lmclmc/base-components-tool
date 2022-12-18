@@ -149,6 +149,12 @@ private:
                                                 mDescryption);
             mParamList.emplace_back(ptr);
             break;}
+            case CmdType::StringNoRange:{
+            auto ptr = std::make_shared<ParamStringNoRange>(mName,
+                                                        mShortName, 
+                                                        mDescryption);
+            mParamList.emplace_back(ptr);
+            break;}
         }
         mTmp = 0;
 
