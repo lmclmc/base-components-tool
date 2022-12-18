@@ -13,6 +13,7 @@ using std::string;
 
 typedef enum class Level_: unsigned char
 {
+    clear,
     reserve,
     nolog,
     info,

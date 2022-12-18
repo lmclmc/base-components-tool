@@ -40,6 +40,12 @@ public:
     WorkQueue(MutexType m);
     ~WorkQueue();
 
+    /**
+     * @brief 添加任务
+     * @param 第一个参数为任务函数指针，可以使匿名函数，后面的参数均为前面函数的参数
+     * @return 用户可以控制返回值是否阻塞，当任务执行完成后，
+     * 返回值都将变成非阻塞状态，并且返回任务的最终返回值。
+     */
     template <typename F, typename ...Args>
     auto addTask(F &&f, Args &&...args) throw() ->
     future<typename result_of<F(Args...)>::type>{

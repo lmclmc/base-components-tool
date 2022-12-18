@@ -11,6 +11,9 @@ string lmc::Logger::gLogLevelStr;
 Logger::Logger(const LogLevel &level) :
     mLevel(level)
 {
+    if (LogLevel::clear == level)
+        return;
+        
     if (LogLevel::reserve == gLevel)
     {
         gLevel = LogLevel::info;
