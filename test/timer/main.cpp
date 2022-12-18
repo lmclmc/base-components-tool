@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     LTimer *t = TypeSingle<LTimer>::getInstance();
     t->startTimer();
 
-    bool ret = cmdline->get("--default", cmdline);
+    bool ret = cmdline->get("--default");
     if (ret)
     {
          uint64_t timer100 = t->setTimer(100, [] {

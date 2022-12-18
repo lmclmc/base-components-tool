@@ -3,6 +3,27 @@
 #include <ios>
 #include <iomanip>
 
+ParamStringNoRange::ParamStringNoRange(const std::string &name, 
+                                       const std::string &shortName, 
+                                       const std::string &descryption) :
+                    ParamNone(name, shortName, descryption)
+{}
+
+CmdType ParamStringNoRange::getCmdType()
+{
+    return CmdType::StringNoRange;
+}
+
+void ParamStringNoRange::setStr(std::string str)
+{
+    mStr = str;
+}
+
+std::string ParamStringNoRange::getStr()
+{
+    return mStr;
+}
+
 ParamHelp::ParamHelp(const std::string &name, 
                      const std::string &shortName, 
                      const std::string &descryption) :
@@ -87,6 +108,69 @@ std::string ParamNone::getDescription()
     return mDescryption;
 }
 
+bool CmdLine::get(std::string name)
+{
+    for (auto &l : mParamList)
+    {
+        if (l->getName() == name)
+        {
+            if (!l->getEnable())
+                return false;
+
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CmdLine::get(std::string name, std::list<int> &list)
+{
+    for (auto &l : mParamList)
+    {
+        if (l->getName() == name)
+        {
+            if (!l->getEnable())
+                return false;
+
+            switch (l->getCmdType())
+            {
+                case CmdType::IntRepeat:
+                auto p = std::dynamic_pointer_cast<ParamIntRepeat>(l);
+                list = p->getList();
+                return true;
+                break;
+            }
+
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CmdLine::get(std::string name, std::string &str)
+{
+    for (auto &l : mParamList)
+    {
+        if (l->getName() == name)
+        {
+            if (!l->getEnable())
+                return false;
+
+            switch (l->getCmdType())
+            {
+                case CmdType::IntRepeat:
+                auto p = std::dynamic_pointer_cast<ParamStringNoRange>(l);
+                str = p->getStr();
+                return true;
+                break;
+            }
+
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CmdLine::parse(int argc, char *argv[])
 {
     bool bSearch = false;
@@ -105,20 +189,12 @@ bool CmdLine::parse(int argc, char *argv[])
                 {
                     bSearch = true;
                     l->setEnable();
-                    switch (l->getCmdType())
+                    cmd = l->getCmdType();
+                    pParamBase = l;
+                    if (l->getCmdType() == CmdType::Help)
                     {
-                        case CmdType::Help:
                         showHelp();
                         exit(0);
-                        break;
-                        case CmdType::IntRepeat:
-                        cmd = CmdType::IntRepeat;
-                        pParamBase = l;
-                        break;
-                        case CmdType::None:
-                        cmd = CmdType::None;
-                        pParamBase = l;
-                        break;
                     }
                 }
             }
@@ -134,7 +210,7 @@ bool CmdLine::parse(int argc, char *argv[])
         {
             switch (cmd)
             {
-                case CmdType::IntRepeat:
+                case CmdType::IntRepeat:{
                 auto p = std::dynamic_pointer_cast<ParamIntRepeat>(pParamBase);
                 int num = ::atoi(argv[i]);
                 if (p->getMax() < num || p->getMin() > num)
@@ -143,7 +219,11 @@ bool CmdLine::parse(int argc, char *argv[])
                     exit(0);
                 }
                 p->pushBack(num);
-                break; 
+                break; }
+                case CmdType::StringNoRange:
+                auto p = std::dynamic_pointer_cast<ParamStringNoRange>(pParamBase);
+                p->setStr(argv[i]);
+                break;
             }
         }
     }

@@ -47,6 +47,20 @@ private:
     std::string mDescryption;
 };
 
+class ParamStringNoRange : public ParamNone
+{
+public:
+    ParamStringNoRange(const std::string &, const std::string &, 
+                       const std::string &);
+    CmdType getCmdType() override;
+
+    std::string getStr();
+    void setStr(std::string str);
+
+private:
+    std::string mStr;
+};
+
 class ParamIntRepeat : public ParamNone
 {
 public:
@@ -86,49 +100,11 @@ public:
         addPriv(args...);
     }
 
-    template<typename T>
-    bool get(std::string name, T &t)
-    {
-        for (auto &l : mParamList)
-        {
-            if (l->getName() == name)
-            {
-                if (!l->getEnable())
-                    return false;
+    bool get(std::string name);
 
-                switch (l->getCmdType())
-                {
-                }
+    bool get(std::string name, std::list<int> &list);
 
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool get(std::string name, std::list<int> &list)
-    {
-        for (auto &l : mParamList)
-        {
-            if (l->getName() == name)
-            {
-                if (!l->getEnable())
-                    return false;
-
-                switch (l->getCmdType())
-                {
-                    case CmdType::IntRepeat:
-                    auto p = std::dynamic_pointer_cast<ParamIntRepeat>(l);
-                    list = p->getList();
-                    return true;
-                    break;
-                }
-
-                return true;
-            }
-        }
-        return false;
-    }
+    bool get(std::string name, std::string &str);
 
     bool parse(int argc, char *argv[]);
 
@@ -191,10 +167,18 @@ private:
         }
     }
 
-    void addPriv()
+    void addPriv(std::string &str)
     {
-
+        if (mCmdType == CmdType::StringNoRange)
+        {
+            auto ptr = std::make_shared<ParamStringNoRange>(mName,
+                                                        mShortName, 
+                                                        mDescryption);
+            mParamList.emplace_back(ptr);
+        }
     }
+
+    void addPriv(){}
 
     void showHelp();
 
