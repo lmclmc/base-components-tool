@@ -3,6 +3,8 @@
 #include <ios>
 #include <iomanip>
 
+using namespace lmc;
+
 ParamStringNoRange::ParamStringNoRange(const std::string &name, 
                                        const std::string &shortName, 
                                        const std::string &descryption) :

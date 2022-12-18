@@ -7,6 +7,8 @@
 
 #include "log/log.h"
 
+namespace lmc
+{
 enum class CmdType : unsigned char
 {
     None,           //选项下无参数模式
@@ -194,5 +196,6 @@ private:
     int mMin, mMax;
     int mTmp;
 };
+}
 
 #endif

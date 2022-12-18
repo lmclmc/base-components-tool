@@ -55,7 +55,7 @@ private:
     TypeSingle() = default;
 
 private:
-    static mutex sMutex;
+    static std::mutex sMutex;
     static T *instance;
 };
 
