@@ -19,8 +19,11 @@ LTimer::~LTimer()
     taskQueue.clear();
 }
 
-uint64_t LTimer::setTimer(uint64_t time, const function<void()> &f, int64_t count)
+uint64_t LTimer::setTimer(int64_t time, const function<void()> &f, int64_t count)
 {
+    if (time <= 0)
+        return 0;
+        
     uint64_t uuid = UUID::generateUuid();
     mutex.lock();
     taskList.emplace_back(time * 1000, time * 1000, f, count, uuid);

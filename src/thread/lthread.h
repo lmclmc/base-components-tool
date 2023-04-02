@@ -8,25 +8,25 @@
 #define SIZE (10000)
 
 namespace lmc{
-    class Thread
-    {
-    public:
-        Thread();
-        ~Thread();
+class Thread
+{
+public:
+    Thread();
+    ~Thread();
 
-    protected:
-	void start();
-    virtual void run(){}
+protected:
+void start();
+virtual void run(){}
 
-    private:
-        void destory();
+private:
+    void destory();
 
-    private:
-        std::condition_variable c;
-        std::atomic<long> cStatus;
-        std::atomic<bool> bStop;
-        std::thread t;
-    };
+private:
+    std::condition_variable c;
+    std::atomic<long> cStatus;
+    std::atomic<bool> bStop;
+    std::thread t;
+};
 }
 
 #endif // THREAD_H

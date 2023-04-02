@@ -2,6 +2,7 @@
 #define SINGLE_H_
 
 #include <mutex>
+#include <unistd.h>
 
 namespace lmc
 {
@@ -27,6 +28,9 @@ public:
 
     inline static T *getInstance()
     {
+        if (!sEnable)
+            return nullptr;
+
         if (nullptr == instance)
         {
             sMutex.lock();
@@ -40,8 +44,11 @@ public:
         return instance;
     }
 
-    static bool destory()
+    static void destory()
     {
+        sEnable = false;
+        sleep(2);
+
         sMutex.lock();
         if (nullptr != instance)
         {
@@ -57,6 +64,7 @@ private:
 private:
     static std::mutex sMutex;
     static T *instance;
+    static bool sEnable;
 };
 
 template<typename T>
@@ -65,5 +73,7 @@ std::mutex TypeSingle<T>::sMutex;
 template<typename T>
 T *TypeSingle<T>::instance = nullptr;
 
+template<typename T>
+bool TypeSingle<T>::sEnable = true;
 };
 #endif

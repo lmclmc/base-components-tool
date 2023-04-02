@@ -4,19 +4,19 @@
 #include "single/single.hpp"
 #include "cmdline/cmdline.h"
 #include <unistd.h>
+#include <map>
 using namespace std;
 using namespace lmc;
-
+#include <queue>
+#include <stack>
 int main(int argc, char *argv[])
 {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
-    cmdline->add("-a", "--add", "add timer", CmdType::IntRepeat, 1, 1000000);
-    cmdline->add("-c", "--clear", "delay sometime clear timer", CmdType::IntRepeat, 1000000, 50000000);
-    cmdline->add("-d", "--default", "default mode", CmdType::None);
-    cmdline->add("-h", "--help", "show usage", CmdType::Help);
+    cmdline->add<std::list, int>("-a", "--add", "add timer");
+    cmdline->add<std::list, int>("-c", "--clear", "delay sometime clear timer");
+    cmdline->add("-d", "--default", "default mode");
 
-    if (!cmdline->parse(argc, argv))
-        return 0;
+    cmdline->parse(argc, argv);
 
     LTimer *t = TypeSingle<LTimer>::getInstance();
     t->startTimer();
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     else
     {
         std::list<int> sList;
-        bool ret = cmdline->get("--add", sList);
+        bool ret = cmdline->get<std::list>("--add", sList);
         if (!ret)
             exit(0);
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    sleep(5);
+    sleep(1000000000);
     TypeSingle<LTimer>::destory();
     pause();
 

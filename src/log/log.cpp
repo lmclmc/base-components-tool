@@ -1,12 +1,20 @@
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "log.h"
 
 using namespace std;
 using namespace lmc;
 
-LogLevel lmc::Logger::gLevel = LogLevel::reserve;
-string lmc::Logger::gLogLevelStr;
+#define SIZE (128)
+
+LogLevel lmc::Logger::sLevel = LogLevel::reserve;
+std::string Logger::sOutputFile = "";
+LogFormat Logger::sLogFormat = LogFormat::num;
+int Logger::sOutputFd = 0;
 
 Logger::Logger(const LogLevel &level) :
     mLevel(level)
@@ -14,43 +22,44 @@ Logger::Logger(const LogLevel &level) :
     if (LogLevel::clear == level)
         return;
         
-    if (LogLevel::reserve == gLevel)
+    std::string logLevelStr;
+    if (LogLevel::reserve == sLevel)
     {
-        gLevel = LogLevel::info;
+        sLevel = LogLevel::info;
 
         const char *sc = ::getenv("LOG_LEVEL");
         if (NULL == sc)
         {
-            gLevel = LogLevel::info;
-            gLogLevelStr = "info";
+            sLevel = LogLevel::info;
+            logLevelStr = "info";
         } else 
         {
             string s = sc;
             if ("nolog" == s)
             {
-                gLevel = LogLevel::nolog;
+                sLevel = LogLevel::nolog;
             }
             else if ("info" == s)
             {
-                gLevel = LogLevel::info;
+                sLevel = LogLevel::info;
             } else if ("warning" == s)
             {
-                gLevel = LogLevel::warning;
+                sLevel = LogLevel::warning;
             } else if ("debug" == s)
             {
-                gLevel = LogLevel::debug;
+                sLevel = LogLevel::debug;
             } else if ("error" == s)
             {
-                gLevel = LogLevel::error;
+                sLevel = LogLevel::error;
             }
-            gLogLevelStr = s;
+            logLevelStr = s;
         }
     }
 
     if (!judgeLevel()) return;
 
     strLog = string("====   ");
-    strLog += gLogLevelStr;
+    strLog += logLevelStr;
     strLog += "  ";
     struct timeval tv;
     struct tm *tm;
@@ -67,10 +76,19 @@ Logger::Logger(const LogLevel &level) :
 Logger::~Logger()
 {
     if (!judgeLevel()) return;
-    cout << strLog << endl;
+
+    if (sOutputFile.empty())
+        cout << strLog << endl;
+    else if (!sOutputFd)
+    {
+        sOutputFd = open(sOutputFile.c_str(), O_CREAT | O_APPEND | O_RDWR, 0666);
+        write(sOutputFd, strLog.c_str(), strLog.size());
+    }
+    else
+        write(sOutputFd, strLog.c_str(), strLog.size());
 }
 
-Logger& Logger::operator << (const string& str)
+Logger &Logger::operator << (const string& str)
 {
     if (!judgeLevel()) return *this;
 
@@ -78,11 +96,27 @@ Logger& Logger::operator << (const string& str)
     return *this;
 }
 
-Logger& Logger::operator << (uint64_t num)
+Logger &Logger::operator << (LogFormat logFormat)
+{
+    if (!judgeLevel()) return *this;
+    sLogFormat = logFormat;
+    return *this;
+}
+
+Logger &Logger::operator << (uint64_t num)
 {
     if (!judgeLevel()) return *this;
 
-    strLog += std::to_string(num);
+    if (sLogFormat == LogFormat::addr)
+    {
+        char buffer[SIZE] = {0};
+        void *p = (void *)num;
+        snprintf(buffer, SIZE, "%p", p);
+        strLog += buffer;
+    }
+    else
+        strLog += std::to_string(num);
+
     return *this;
 }
 
@@ -94,7 +128,7 @@ Logger& Logger::operator << (uint32_t num)
     return *this;
 }
 
-Logger& Logger::operator << (int num)
+Logger &Logger::operator << (int num)
 {
     if (!judgeLevel()) return *this;
 
@@ -102,7 +136,7 @@ Logger& Logger::operator << (int num)
     return *this;
 }
 
-Logger& Logger::operator << (const char *src)
+Logger &Logger::operator << (const char *src)
 {
     if (!judgeLevel()) return *this;
 
@@ -112,7 +146,7 @@ Logger& Logger::operator << (const char *src)
     return *this;
 }
 
-Logger& Logger::operator << (long int num)
+Logger &Logger::operator << (long int num)
 {
     if (!judgeLevel()) return *this;
 
@@ -122,7 +156,7 @@ Logger& Logger::operator << (long int num)
 
 bool Logger::judgeLevel()
 {
-    if (mLevel <= gLevel)
+    if (mLevel <= sLevel)
     {
         return true;
     }
@@ -135,3 +169,7 @@ string Logger::getString()
     return strLog;
 }
 
+void Logger::setOutputFile(const std::string &file)
+{
+    sOutputFile = file;
+}

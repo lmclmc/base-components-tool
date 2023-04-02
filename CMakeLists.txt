@@ -4,6 +4,7 @@ project(Base)
 
 set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS  "-std=c++11 -g")
+add_compile_options(-W)
 
 include_directories(src)
 

@@ -13,7 +13,6 @@
 using namespace std;
 
 namespace lmc {
-
 enum class MutexType: unsigned char
 {
     None,

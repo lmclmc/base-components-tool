@@ -13,7 +13,6 @@ using namespace lmc;
 
 namespace lmc
 {
-
 class LTimer
 {
 public:
@@ -28,7 +27,7 @@ public:
      * @param count 调用次数，-1表示调用无限次
      * @return 返回uuid，就靠这个uuid移除该任务
      */
-    uint64_t setTimer(uint64_t time, const function<void()> &f,
+    uint64_t setTimer(int64_t time, const function<void()> &f,
                       int64_t count = -1);
 
     /**
@@ -83,9 +82,9 @@ private:
     shared_ptr<WorkQueue> w;
 
     bool bStatus;  //是否开启定时器
-    uint64_t timeStamp; //时间戳
-    uint64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，更新为最近的任务的时间。
-    uint64_t tvS, tvE;
+    int64_t timeStamp; //时间戳
+    int64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，更新为最近的任务的时间。
+    int64_t tvS, tvE;
 
     SpinMutex mutex;
 };

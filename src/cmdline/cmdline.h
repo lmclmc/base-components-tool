@@ -7,201 +7,203 @@
 
 #include "log/log.h"
 
-namespace lmc
-{
-enum class CmdType : unsigned char
-{
-    None,           //选项下无参数模式
-    StringNoRange,  //选项下参数为字符串类型，并没有参数范围
-    StringRange,    //选项下参数为字符串类型，并且有参数范围
-    IntRange,       //选项下参数为数字类型，并有参数范围
-    IntRepeat,      //可以重复设置该选项
-    Help,           //当标志该类型时，该选项将变成帮助选项
-};
-
 class ParamBase
 {
 public:
-    ParamBase();
-    virtual std::string getName() = 0;
-    virtual std::string getShortName() = 0;
-    virtual std::string getDescription() = 0;
-    virtual CmdType getCmdType() = 0;
+    ParamBase(const std::string &name_,
+              const std::string &shortName_,
+              const std::string &describtion_);
+    virtual ~ParamBase() = default;
+
+    virtual void set(int) = 0;
+    virtual void set(const std::string &) = 0;
+    virtual bool hasParam() = 0;
+
+    void setEnable(bool);
     bool getEnable();
-    bool setEnable();
+    std::string getName();
+    std::string getShortName();
+    std::string getDescription();
 
 private:
-    bool enable;
+    bool mEnable;
+    std::string mName;
+    std::string mShortName;
+    std::string mDescribtion;
 };
 
 class ParamNone : public ParamBase
 {
 public:
-    ParamNone(const std::string &, const std::string &, const std::string &);
-    CmdType getCmdType() override;
-    std::string getName() override;
-    std::string getShortName() override;
-    std::string getDescription() override;
+    ParamNone(const std::string &name_,
+              const std::string &shortName_,
+              const std::string &describtion_) :
+              ParamBase(name_, shortName_, describtion_){}
+    ~ParamNone() = default;
 
-private:
-    std::string mName;
-    std::string mShortName;
-    std::string mDescryption;
+protected:
+    void set(int) override
+    {}
+
+    void set(const std::string &) override
+    {}
+
+    bool hasParam() override;
 };
 
-class ParamStringNoRange : public ParamNone
+template<template<typename T, typename T2 = std::allocator<T>> class STL>
+class ParamInt : public ParamBase
 {
 public:
-    ParamStringNoRange(const std::string &, const std::string &, 
-                       const std::string &);
-    CmdType getCmdType() override;
+    ParamInt(const std::string &name_,
+             const std::string &shortName_,
+             const std::string &describtion_) :
+             ParamBase(name_, shortName_, describtion_){}
 
-    std::string getStr();
-    void setStr(std::string str);
+    ~ParamInt() = default;
+
+    STL<int> get()
+    {
+        return data;
+    }
+
+protected:
+    void set(int value) override
+    {
+        data.push_back(value);
+    }
+
+    void set(const std::string &value) override
+    {}
+
+    bool hasParam() override
+    {
+        return true;
+    }
 
 private:
-    std::string mStr;
+    STL<int> data;
 };
 
-class ParamIntRepeat : public ParamNone
+template<template<typename T, typename T2 = std::allocator<T>> class STL>
+class ParamStr : public ParamBase
 {
 public:
-    ParamIntRepeat(const std::string &, const std::string &, 
-                   const std::string &, int, int);
-    CmdType getCmdType() override;
-    int getMin();
-    int getMax();
-    void pushBack(int num);
-    std::list<int> &getList();
+    ParamStr(const std::string &name_,
+             const std::string &shortName_,
+             const std::string &describtion_) :
+             ParamBase(name_, shortName_, describtion_){}
+
+    ~ParamStr() = default;
+
+    STL<std::string> get()
+    {
+        return data;
+    }
+
+protected:
+    void set(int value) override
+    {}
+
+    void set(const std::string &value) override
+    {
+        data.push_back(value);
+    }
+
+    bool hasParam() override
+    {
+        return true;
+    }
 
 private:
-    std::list<int> mList;
-    int mMin;
-    int mMax;
-};
-
-class ParamHelp final : public ParamNone
-{
-public:
-    ParamHelp(const std::string &, const std::string &, const std::string &);
-    CmdType getCmdType() override;
+    STL<std::string> data;
 };
 
 class CmdLine
 {
 public:
-    /*
-    * @brief 添加参数设置
-    * @param 第一个参数为详细选项，第二个参数为简短选项，第三个参数为该选项描述信息
-    *        第四个参数为选项参数类型，后面的参数均为动态参数。
-    * @return void
-    */
-    template<typename ...Args>
-    void add(Args &&...args)
+    CmdLine() = default;
+    ~CmdLine() = default;
+
+    template<template<typename T, typename T2 = std::allocator<T>> class STL, 
+             class T>
+    void add(const std::string &shortName, const std::string &name,
+             const std::string &describtion)
     {
-        addPriv(args...);
+        if (std::is_same<T, int>::value)
+        {
+            paramTable.emplace_back(std::make_shared<ParamInt<STL>>(name, 
+                                                                shortName,
+                                                            describtion));
+        }
+        else if (std::is_same<T, std::string>::value)
+        {
+            paramTable.emplace_back(std::make_shared<ParamStr<STL>>(name, 
+                                                                shortName,
+                                                            describtion));
+        }
     }
 
-    bool get(std::string name);
+    void add(const std::string &shortName, const std::string &name,
+             const std::string &describtion)
+    {
+        paramTable.emplace_back(std::make_shared<ParamNone>(name, 
+                                                            shortName,
+                                                            describtion));
+    }
 
-    bool get(std::string name, std::list<int> &list);
+    template<template<typename T, typename T2 = std::allocator<T>> class STL>
+    bool get(const std::string &name, STL<int> &t)
+    {
+        for (auto &l : paramTable)
+        {
+            if ((l->getName() == name || l->getShortName() == name) &&
+                 l->getEnable())
+            {
+                auto p = std::dynamic_pointer_cast<ParamInt<STL>>(l);
+                t = p->get();
+                return true;
+            }
+        }
+        return false;
+    }
 
-    bool get(std::string name, std::string &str);
+    template<template<typename T, typename T2 = std::allocator<T>> class STL>
+    bool get(const std::string &name, STL<std::string> &t)
+    {
+        for (auto &l : paramTable)
+        {
+            if ((l->getName() == name || l->getShortName() == name) &&
+                 l->getEnable())
+            {
+                auto p = std::dynamic_pointer_cast<ParamStr<STL>>(l);
+                t = p->get();
+                return true;
+            }
+        }
+        return false;
+    }
 
-    bool parse(int argc, char *argv[]);
+    bool get(const std::string &name)
+    {
+        for (auto &l : paramTable)
+        {
+            if ((l->getName() == name || l->getShortName() == name) &&
+                 l->getEnable())
+                return true;
+        }
+
+        return false;
+    }
+
+    void parse(int, char *[]);
 
 private:
-    template<typename ...Args>
-    void addPriv(std::string str, Args &&...args)
-    {
-        switch (mTmp)
-        {
-            case 0:
-            mShortName = str;
-            break;
-            case 1:
-            mName = str;
-            break;
-            case 2:
-            mDescryption = str;
-            break;
-        }
-        mTmp++;
-
-        addPriv(args...);
-    }
-
-    template<typename ...Args>
-    void addPriv(CmdType &cmd, Args &...args)
-    {
-        mCmdType = cmd;
-        switch (cmd)
-        {
-            case CmdType::Help:{
-            auto ptr = std::make_shared<ParamHelp>(mName, 
-                                                mShortName, 
-                                                mDescryption);
-            mParamList.emplace_back(ptr);
-            break;}
-            case CmdType::None:{
-            auto ptr = std::make_shared<ParamNone>(mName, 
-                                                mShortName, 
-                                                mDescryption);
-            mParamList.emplace_back(ptr);
-            break;}
-            case CmdType::StringNoRange:{
-            auto ptr = std::make_shared<ParamStringNoRange>(mName,
-                                                        mShortName, 
-                                                        mDescryption);
-            mParamList.emplace_back(ptr);
-            break;}
-        }
-        mTmp = 0;
-
-        addPriv(args...);
-    }
-
-    void addPriv(int &min, int &max)
-    {
-        mMin = min;
-        mMax = max;
-        if (mCmdType == CmdType::IntRepeat)
-        {
-            auto ptr = std::make_shared<ParamIntRepeat>(mName,
-                                                        mShortName, 
-                                                        mDescryption,
-                                                        mMin, mMax);
-            mParamList.emplace_back(ptr);
-        }
-    }
-
-    void addPriv(std::string &str)
-    {
-        if (mCmdType == CmdType::StringNoRange)
-        {
-            auto ptr = std::make_shared<ParamStringNoRange>(mName,
-                                                        mShortName, 
-                                                        mDescryption);
-            mParamList.emplace_back(ptr);
-        }
-    }
-
-    void addPriv(){}
-
     void showHelp();
 
 private:
-    std::list<std::shared_ptr<ParamBase>> mParamList;
-
-    std::string mName;
-    std::string mShortName;
-    std::string mDescryption;
-
-    CmdType mCmdType;
-
-    int mMin, mMax;
-    int mTmp;
+    std::list<std::shared_ptr<ParamBase>> paramTable;
+    std::string cmd;
 };
-}
 
 #endif
