@@ -8,11 +8,11 @@ aux_source_directory(./single/ BASE_FILES)
 aux_source_directory(./cmdline/ BASE_FILES)
 aux_source_directory(./log/ BASE_FILES)
 
-add_library(core SHARED ${BASE_FILES})
+add_library(lmcbase SHARED ${BASE_FILES})
 
-target_link_libraries(core pthread)
+target_link_libraries(lmcbase pthread)
 
-install(DIRECTORY ${PROJECT_BINARY_DIR}/src/libcore.so DESTINATION ${PROJECT_BINARY_DIR}/install/lib/)
+install(DIRECTORY ${PROJECT_BINARY_DIR}/src/liblmcbase.so DESTINATION ${PROJECT_BINARY_DIR}/install/lib/)
 install(DIRECTORY single/ DESTINATION ${PROJECT_BINARY_DIR}/install/include/single/)
 install(FILES log/log.h DESTINATION ${PROJECT_BINARY_DIR}/install/include/log/)
 install(FILES thread/lthread.h DESTINATION ${PROJECT_BINARY_DIR}/install/include/thread/)
