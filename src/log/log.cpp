@@ -3,13 +3,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "log.h"
 
 using namespace std;
 using namespace lmc;
 
-#define SIZE (128)
+#define BUFFER_SIZE (128)
 
 LogLevel lmc::Logger::sLevel = LogLevel::reserve;
 std::string Logger::sOutputFile = "";
@@ -65,8 +66,8 @@ Logger::Logger(const LogLevel &level) :
     struct tm *tm;
     gettimeofday(&tv, NULL);
     tm = localtime(&tv.tv_sec);
-    char buffer[32] = {0};
-    sprintf(buffer, "%d-%d-%d %d:%d:%d.%ld", tm->tm_year+1900, tm->tm_mon+1,
+    char buffer[BUFFER_SIZE] = {0};
+    snprintf(buffer, BUFFER_SIZE, "%d-%d-%d %d:%d:%d.%ld", tm->tm_year+1900, tm->tm_mon+1,
                                              tm->tm_mday, tm->tm_hour,
                                              tm->tm_min, tm->tm_sec, tv.tv_usec);
     strLog += buffer;
@@ -82,10 +83,15 @@ Logger::~Logger()
     else if (!sOutputFd)
     {
         sOutputFd = open(sOutputFile.c_str(), O_CREAT | O_APPEND | O_RDWR, 0666);
-        write(sOutputFd, strLog.c_str(), strLog.size());
+        if (sOutputFd == -1)
+            return;
+
+        if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
+            cout << "write : error " << strerror(errno) << endl;
     }
     else
-        write(sOutputFd, strLog.c_str(), strLog.size());
+        if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
+            cout << "write : error " << strerror(errno) << endl;
 }
 
 Logger &Logger::operator << (const string& str)
@@ -109,9 +115,9 @@ Logger &Logger::operator << (uint64_t num)
 
     if (sLogFormat == LogFormat::addr)
     {
-        char buffer[SIZE] = {0};
+        char buffer[BUFFER_SIZE] = {0};
         void *p = (void *)num;
-        snprintf(buffer, SIZE, "%p", p);
+        snprintf(buffer, BUFFER_SIZE, "%p", p);
         strLog += buffer;
     }
     else
