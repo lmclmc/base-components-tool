@@ -7,6 +7,8 @@
 
 #include "log/log.h"
 
+namespace lmc
+{
 class ParamBase
 {
 public:
@@ -204,6 +206,7 @@ private:
 private:
     std::list<std::shared_ptr<ParamBase>> paramTable;
     std::string cmd;
+};
 };
 
 #endif

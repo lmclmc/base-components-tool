@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <string.h>
 
+using namespace lmc;
+
 void CmdLine::parse(int argc, char *argv[])
 {
     cmd = argv[0];
