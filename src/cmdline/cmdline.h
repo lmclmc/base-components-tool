@@ -5,10 +5,35 @@
 #include <list>
 #include <memory>
 
-#include "log/log.h"
-
 namespace lmc
 {
+class CmdLineError : public std::exception {
+public:
+    CmdLineError(const std::string &msg = ""): msg(msg){}
+    ~CmdLineError() throw() {}
+    const char *what() const throw() { return msg.c_str(); }
+    CmdLineError &operator << (std::string str)
+    {
+        msg += str;
+        return *this;
+    }
+
+    CmdLineError &operator << (const char *str)
+    {
+        msg += str;
+        return *this;
+    }
+
+    CmdLineError &operator << (int num)
+    {
+        msg += std::to_string(num);
+        return *this;
+    }
+
+private:
+    std::string msg;
+};
+
 class ParamBase
 {
 public:
@@ -17,8 +42,8 @@ public:
               const std::string &describtion_);
     virtual ~ParamBase() = default;
 
-    virtual void set(int) = 0;
-    virtual void set(const std::string &) = 0;
+    virtual bool set(int) = 0;
+    virtual bool set(const std::string &) = 0;
     virtual bool hasParam() = 0;
 
     void setEnable(bool);
@@ -44,11 +69,15 @@ public:
     ~ParamNone() = default;
 
 protected:
-    void set(int) override
-    {}
+    bool set(int) override
+    {
+        return false;
+    }
 
-    void set(const std::string &) override
-    {}
+    bool set(const std::string &) override
+    {
+        return false;
+    }
 
     bool hasParam() override;
 };
@@ -59,8 +88,11 @@ class ParamInt : public ParamBase
 public:
     ParamInt(const std::string &name_,
              const std::string &shortName_,
-             const std::string &describtion_) :
-             ParamBase(name_, shortName_, describtion_){}
+             const std::string &describtion_,
+             const STL<int> &r) :
+             ParamBase(name_, shortName_, describtion_),
+             range(r)
+             {}
 
     ~ParamInt() = default;
 
@@ -70,13 +102,25 @@ public:
     }
 
 protected:
-    void set(int value) override
+    bool set(int value) override
     {
+        if (range.size() > 0 && (range.front() > value || range.back() < value))
+        {
+            CmdLineError err;
+            err << "value range is " << range.front() << " to " << range.back()
+                << " , " << value << " is out of range";
+            throw err;
+            return false;
+        }
+            
         data.push_back(value);
+        return true;
     }
 
-    void set(const std::string &value) override
-    {}
+    bool set(const std::string &value) override
+    {
+        return false;
+    }
 
     bool hasParam() override
     {
@@ -85,6 +129,7 @@ protected:
 
 private:
     STL<int> data;
+    STL<int> range;
 };
 
 template<template<typename T, typename T2 = std::allocator<T>> class STL>
@@ -93,8 +138,11 @@ class ParamStr : public ParamBase
 public:
     ParamStr(const std::string &name_,
              const std::string &shortName_,
-             const std::string &describtion_) :
-             ParamBase(name_, shortName_, describtion_){}
+             const std::string &describtion_,
+             const STL<std::string> &r) :
+             ParamBase(name_, shortName_, describtion_),
+             range(r)
+             {}
 
     ~ParamStr() = default;
 
@@ -104,12 +152,34 @@ public:
     }
 
 protected:
-    void set(int value) override
-    {}
-
-    void set(const std::string &value) override
+    bool set(int value) override
     {
+        return false;
+    }
+
+    bool set(const std::string &value) override
+    {
+        if (range.size() > 0)
+        {
+            for (auto &r : range)
+            {
+                if (value == r)
+                {
+                    data.push_back(value);
+                    return true;
+                }    
+            }
+            CmdLineError err;
+            err << "value \"" << value << "\" is out of range \n    ";
+            for (auto &r : range)
+            {
+                 err << r << "  ";
+            }
+            throw err;
+            return false;
+        }
         data.push_back(value);
+        return true;
     }
 
     bool hasParam() override
@@ -119,6 +189,7 @@ protected:
 
 private:
     STL<std::string> data;
+    STL<std::string> range;
 };
 
 class CmdLine
@@ -130,20 +201,21 @@ public:
     template<template<typename T, typename T2 = std::allocator<T>> class STL, 
              class T>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion)
+             const std::string &describtion, STL<int> r)
     {
-        if (std::is_same<T, int>::value)
-        {
-            paramTable.emplace_back(std::make_shared<ParamInt<STL>>(name, 
-                                                                shortName,
-                                                            describtion));
-        }
-        else if (std::is_same<T, std::string>::value)
-        {
-            paramTable.emplace_back(std::make_shared<ParamStr<STL>>(name, 
-                                                                shortName,
-                                                            describtion));
-        }
+        paramTable.emplace_back(std::make_shared<ParamInt<STL>>(name, 
+                                                            shortName,
+                                                        describtion, r));
+    }
+
+    template<template<typename T, typename T2 = std::allocator<T>> class STL, 
+             class T>
+    void add(const std::string &shortName, const std::string &name,
+             const std::string &describtion, STL<std::string> r)
+    {
+        paramTable.emplace_back(std::make_shared<ParamStr<STL>>(name, 
+                                                            shortName,
+                                                        describtion, r));
     }
 
     void add(const std::string &shortName, const std::string &name,

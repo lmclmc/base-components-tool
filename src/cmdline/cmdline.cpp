@@ -14,40 +14,50 @@ void CmdLine::parse(int argc, char *argv[])
                                                         "print help message"));
     std::shared_ptr<ParamBase> pB = nullptr;
     bool bSearch = false;
-    for (int i = 1; i < argc; i++)
+    try
     {
-        bSearch = false;
-        if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1))
+        for (int i = 1; i < argc; i++)
         {
-            if (!strncmp(argv[i], "--help", 6) || !strncmp(argv[i], "-h", 2))
-                showHelp();
-
-            for (auto &l : paramTable)
+            bSearch = false;
+            if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1))
             {
-                if (l->getName() == argv[i] || l->getShortName() == argv[i])
+                if (!strncmp(argv[i], "--help", 6) || !strncmp(argv[i], "-h", 2))
+                    showHelp();
+
+                for (auto &l : paramTable)
                 {
-                    bSearch = true;
-                    l->setEnable(true);
-                    pB = l;
-                    break;
-                }
-            }  
+                    if (l->getName() == argv[i] || l->getShortName() == argv[i])
+                    {
+                        bSearch = true;
+                        l->setEnable(true);
+                        pB = l;
+                        break;
+                    }
+                }  
 
-            if (!bSearch)
-                showHelp();
-        }
-        else
-        {
-            if (!pB) 
-                showHelp();
-
-            int value = ::atoi(argv[i]);
-            if (value || (!value && !strcmp(argv[i], "0")))
-                pB->set(value);
+                if (!bSearch)
+                    showHelp();
+            }
             else
-                pB->set(argv[i]);
+            {
+                if (!pB) 
+                    showHelp();
 
+                int value = ::atoi(argv[i]);
+                if (value || (!value && !strcmp(argv[i], "0")))
+                    pB->set(value);
+                else
+                    pB->set(argv[i]);
+
+            }
         }
+    }
+    catch(const std::exception& e)
+    {
+        std::cout << "options is invaild:" << std::endl;
+        std::cout << e.what() << std::endl;
+        std::cout << std::endl;
+        showHelp();
     }
 }
 
