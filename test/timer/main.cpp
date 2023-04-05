@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
 {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
 
-    cmdline->add<std::list, int>("-a", "--add", "add timer", std::list<int>());
-    cmdline->add<std::list, int>("-c", "--clear", "delay sometime clear timer", std::list<int>());
+    cmdline->add<std::list>("-a", "--add", "add timer", std::list<int>());
+    cmdline->add<std::list>("-c", "--clear", "delay sometime clear timer", std::list<int>());
     cmdline->add("-d", "--default", "default mode");
 
     cmdline->parse(argc, argv);

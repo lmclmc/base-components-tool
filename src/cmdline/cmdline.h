@@ -39,24 +39,29 @@ class ParamBase
 public:
     ParamBase(const std::string &name_,
               const std::string &shortName_,
-              const std::string &describtion_);
+              const std::string &describtion_,
+              const std::list<std::string> &dep);
     virtual ~ParamBase() = default;
 
     virtual bool set(int) = 0;
     virtual bool set(const std::string &) = 0;
     virtual bool hasParam() = 0;
+    virtual std::string getRange() = 0;
 
     void setEnable(bool);
     bool getEnable();
     std::string getName();
     std::string getShortName();
     std::string getDescription();
+    std::string getRangeStr();
+    std::list<std::string> &getDepList();
 
 private:
     bool mEnable;
     std::string mName;
     std::string mShortName;
     std::string mDescribtion;
+    std::list<std::string> mDep;
 };
 
 class ParamNone : public ParamBase
@@ -64,8 +69,9 @@ class ParamNone : public ParamBase
 public:
     ParamNone(const std::string &name_,
               const std::string &shortName_,
-              const std::string &describtion_) :
-              ParamBase(name_, shortName_, describtion_){}
+              const std::string &describtion_,
+              const std::list<std::string> &dep) :
+              ParamBase(name_, shortName_, describtion_, dep){}
     ~ParamNone() = default;
 
 protected:
@@ -79,6 +85,11 @@ protected:
         return false;
     }
 
+    std::string getRange() override
+    {
+        return "";
+    }
+
     bool hasParam() override;
 };
 
@@ -89,8 +100,9 @@ public:
     ParamInt(const std::string &name_,
              const std::string &shortName_,
              const std::string &describtion_,
-             const STL<int> &r) :
-             ParamBase(name_, shortName_, describtion_),
+             const STL<int> &r,
+             const std::list<std::string> &dep) :
+             ParamBase(name_, shortName_, describtion_, dep),
              range(r)
              {}
 
@@ -122,6 +134,15 @@ protected:
         return false;
     }
 
+    std::string getRange() override
+    {
+        if (!range.size())
+            return "";
+
+        return std::string("[") + std::to_string(range.front()) + " , " 
+              + std::to_string(range.back()) + "]";
+    }
+
     bool hasParam() override
     {
         return true;
@@ -139,8 +160,9 @@ public:
     ParamStr(const std::string &name_,
              const std::string &shortName_,
              const std::string &describtion_,
-             const STL<std::string> &r) :
-             ParamBase(name_, shortName_, describtion_),
+             const STL<std::string> &r,
+             const std::list<std::string> &dep) :
+             ParamBase(name_, shortName_, describtion_, dep),
              range(r)
              {}
 
@@ -182,6 +204,21 @@ protected:
         return true;
     }
 
+    std::string getRange() override
+    {
+        if (!range.size())
+            return "";
+
+        std::string str("[");
+        for (auto &r : range)
+        {
+            str += r;
+            str += "  ";
+        }
+        str += "]";
+        return str;
+    }
+
     bool hasParam() override
     {
         return true;
@@ -198,32 +235,33 @@ public:
     CmdLine() = default;
     ~CmdLine() = default;
 
-    template<template<typename T, typename T2 = std::allocator<T>> class STL, 
-             class T>
+    template<template<typename T, typename T2 = std::allocator<T>> class STL>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, STL<int> r)
+             const std::string &describtion, STL<int> r, 
+             std::list<std::string> dep = std::list<std::string>())
     {
         paramTable.emplace_back(std::make_shared<ParamInt<STL>>(name, 
                                                             shortName,
-                                                        describtion, r));
+                                                        describtion, r, dep));
     }
 
-    template<template<typename T, typename T2 = std::allocator<T>> class STL, 
-             class T>
+    template<template<typename T, typename T2 = std::allocator<T>> class STL>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, STL<std::string> r)
+             const std::string &describtion, STL<std::string> r,
+             std::list<std::string> dep = std::list<std::string>())
     {
         paramTable.emplace_back(std::make_shared<ParamStr<STL>>(name, 
                                                             shortName,
-                                                        describtion, r));
+                                                        describtion, r, dep));
     }
 
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion)
+             const std::string &describtion,
+             std::list<std::string> dep = std::list<std::string>())
     {
         paramTable.emplace_back(std::make_shared<ParamNone>(name, 
                                                             shortName,
-                                                            describtion));
+                                                            describtion, dep));
     }
 
     template<template<typename T, typename T2 = std::allocator<T>> class STL>
@@ -276,6 +314,7 @@ public:
 
 private:
     void showHelp();
+    void paramCheck();
 
 private:
     std::list<std::shared_ptr<ParamBase>> paramTable;

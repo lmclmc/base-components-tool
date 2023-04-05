@@ -3,6 +3,7 @@
 #include <ios>
 #include <iomanip>
 #include <string.h>
+#include <set>
 
 using namespace lmc;
 
@@ -11,7 +12,8 @@ void CmdLine::parse(int argc, char *argv[])
     cmd = argv[0];
     paramTable.emplace_back(std::make_shared<ParamNone>("--help", 
                                                         "-h",
-                                                        "print help message"));
+                                                        "print help message",
+                                                        std::list<std::string>()));
     std::shared_ptr<ParamBase> pB = nullptr;
     bool bSearch = false;
     try
@@ -59,6 +61,40 @@ void CmdLine::parse(int argc, char *argv[])
         std::cout << std::endl;
         showHelp();
     }
+
+    paramCheck();
+}
+
+void CmdLine::paramCheck()
+{
+    std::set<std::string> enableSet;
+    for (auto &l : paramTable)
+    {
+        if (l->getEnable())
+        {
+            enableSet.emplace(l->getName());
+        }
+    }
+
+    for (auto &l : paramTable)
+    {
+        if (l->getEnable())
+        {
+            auto &deps = l->getDepList();
+            for (auto &d : deps)
+            {
+                if (enableSet.find(d) == enableSet.end())
+                {
+                    std::cout << "options error:" << std::endl;
+                    std::string str = std::string("paramter ") +
+                          l->getName() + " depends paramter " + d;
+                    std::cout << str << std::endl;
+                    std::cout << std::endl;
+                    showHelp();
+                }
+            }
+        } 
+    }
 }
 
 void CmdLine::showHelp()
@@ -71,9 +107,18 @@ void CmdLine::showHelp()
                   << l->getShortName()<< ", "  <<std::left << std::setfill(' ') 
                   << std::setw(25) << l->getName() << l->getDescription() 
                   << std::endl;
+        std::string str = l->getRange();
+        if (!str.empty())
+            std::cout <<std::left << std::setfill(' ') 
+                      << std::setw(36) << " " << str << std::endl;
     }
 
     exit(0);
+}
+
+std::string ParamBase::getRangeStr()
+{
+    return getRange();
 }
 
 std::string ParamBase::getDescription()
@@ -108,9 +153,16 @@ void ParamBase::setEnable(bool enable)
 
 ParamBase::ParamBase(const std::string &name_,
                      const std::string &shortName_,
-                     const std::string &describtion_) :
+                     const std::string &describtion_,
+                     const std::list<std::string> &dep) :
                      mName(name_),
                      mShortName(shortName_),
                      mDescribtion(describtion_),
-                     mEnable(false)
+                     mEnable(false),
+                     mDep(dep)
 {}
+
+std::list<std::string> &ParamBase::getDepList()
+{
+    return mDep;
+}
