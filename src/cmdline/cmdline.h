@@ -163,6 +163,7 @@ public:
                  l->getEnable())
             {
                 auto p = std::dynamic_pointer_cast<ParamInt<STL>>(l);
+                t.clear();
                 t = p->get();
                 return true;
             }
@@ -179,6 +180,7 @@ public:
                  l->getEnable())
             {
                 auto p = std::dynamic_pointer_cast<ParamStr<STL>>(l);
+                t.clear();
                 t = p->get();
                 return true;
             }

@@ -7,20 +7,20 @@
 using std::string;
 
 #define LOGGER_INFO     (lmc::Logger(LogLevel::info) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER_DEBUG     (lmc::Logger(LogLevel::debug) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER_ERROR     (lmc::Logger(LogLevel::error) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER_WARNING     (lmc::Logger(LogLevel::warning) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER  LOGGER_INFO
+#define LOGGER_DEBUG    (lmc::Logger(LogLevel::debug) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
+#define LOGGER_ERROR    (lmc::Logger(LogLevel::error) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
+#define LOGGER_WARNING  (lmc::Logger(LogLevel::warning) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
+#define LOGGER          (lmc::Logger(LogLevel::print))
 
 typedef enum class LogLevel_: unsigned char
 {
-    clear,
-    reserve,
-    nolog,
+    close,
+    print,
     info,
     warning,
     debug,
-    error
+    error,
+    all
 }LogLevel;
 
 typedef enum class LogFormat_: unsigned char
@@ -47,6 +47,8 @@ public:
     string getString();
 
     static void setOutputFile(const std::string &);
+    static void setLevel(LogLevel);
+    static LogLevel getLevel();
 private:
     bool judgeLevel();
 

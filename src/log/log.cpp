@@ -12,66 +12,47 @@ using namespace lmc;
 
 #define BUFFER_SIZE (128)
 
-LogLevel lmc::Logger::sLevel = LogLevel::reserve;
+LogLevel lmc::Logger::sLevel = LogLevel::close;
 std::string Logger::sOutputFile = "";
 LogFormat Logger::sLogFormat = LogFormat::num;
 int Logger::sOutputFd = 0;
 
 Logger::Logger(const LogLevel &level) :
     mLevel(level)
-{
-    if (LogLevel::clear == level)
-        return;
-        
-    std::string logLevelStr;
-    if (LogLevel::reserve == sLevel)
-    {
-        sLevel = LogLevel::info;
-
-        const char *sc = ::getenv("LOG_LEVEL");
-        if (NULL == sc)
-        {
-            sLevel = LogLevel::info;
-            logLevelStr = "info";
-        } else 
-        {
-            string s = sc;
-            if ("nolog" == s)
-            {
-                sLevel = LogLevel::nolog;
-            }
-            else if ("info" == s)
-            {
-                sLevel = LogLevel::info;
-            } else if ("warning" == s)
-            {
-                sLevel = LogLevel::warning;
-            } else if ("debug" == s)
-            {
-                sLevel = LogLevel::debug;
-            } else if ("error" == s)
-            {
-                sLevel = LogLevel::error;
-            }
-            logLevelStr = s;
-        }
-    }
-
+{      
     if (!judgeLevel()) return;
 
-    strLog = string("====   ");
-    strLog += logLevelStr;
-    strLog += "  ";
-    struct timeval tv;
-    struct tm *tm;
-    gettimeofday(&tv, NULL);
-    tm = localtime(&tv.tv_sec);
-    char buffer[BUFFER_SIZE] = {0};
-    snprintf(buffer, BUFFER_SIZE, "%d-%d-%d %d:%d:%d.%ld", tm->tm_year+1900, tm->tm_mon+1,
-                                             tm->tm_mday, tm->tm_hour,
-                                             tm->tm_min, tm->tm_sec, tv.tv_usec);
-    strLog += buffer;
-    strLog += "   ";
+    if (mLevel != LogLevel::print)
+    {
+        std::string logLevelStr = "";
+        switch (mLevel)
+        {
+        case LogLevel::info:
+            logLevelStr = "info";
+            break;
+        case LogLevel::warning:
+            logLevelStr = "warning";
+            break;
+        case LogLevel::debug:
+            logLevelStr = "debug";
+            break;
+        case LogLevel::error:
+            logLevelStr = "error";
+            break;
+        }
+        strLog += logLevelStr;
+        strLog += "  ";
+        struct timeval tv;
+        struct tm *tm;
+        gettimeofday(&tv, NULL);
+        tm = localtime(&tv.tv_sec);
+        char buffer[BUFFER_SIZE] = {0};
+        snprintf(buffer, BUFFER_SIZE, "%d-%d-%d %d:%d:%d.%ld", tm->tm_year+1900, tm->tm_mon+1,
+                                                tm->tm_mday, tm->tm_hour,
+                                                tm->tm_min, tm->tm_sec, tv.tv_usec);
+        strLog += buffer;
+        strLog += "   ";
+    }  
 }
 
 Logger::~Logger()
@@ -85,13 +66,16 @@ Logger::~Logger()
         sOutputFd = open(sOutputFile.c_str(), O_CREAT | O_APPEND | O_RDWR, 0666);
         if (sOutputFd == -1)
             return;
-
+        strLog += "\n";
         if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
             cout << "write : error " << strerror(errno) << endl;
     }
     else
+    {
+        strLog += "\n";
         if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
             cout << "write : error " << strerror(errno) << endl;
+    } 
 }
 
 Logger &Logger::operator << (const string& str)
@@ -178,4 +162,14 @@ string Logger::getString()
 void Logger::setOutputFile(const std::string &file)
 {
     sOutputFile = file;
+}
+
+void Logger::setLevel(LogLevel level)
+{
+    sLevel = level;
+}
+
+LogLevel Logger::getLevel()
+{
+    return sLevel;
 }

@@ -57,9 +57,10 @@ void CmdLine::showHelp()
     std::cout << "options:" << std::endl;
     for (auto &l : paramTable)
     {
-        std::cout << "    " << l->getShortName() << ", " << std::left 
-                  << std::setfill(' ') << std::setw(40) << l->getName() 
-                  << l->getDescription() << std::endl;
+        std::cout << "    "   << std::left << std::setfill(' ') << std::setw(5)
+                  << l->getShortName()<< ", "  <<std::left << std::setfill(' ') 
+                  << std::setw(25) << l->getName() << l->getDescription() 
+                  << std::endl;
     }
 
     exit(0);
