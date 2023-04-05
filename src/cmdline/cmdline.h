@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <memory>
+#include <sstream>
 
 namespace lmc
 {
@@ -43,7 +44,6 @@ public:
               const std::list<std::string> &dep);
     virtual ~ParamBase() = default;
 
-    virtual bool set(int) = 0;
     virtual bool set(const std::string &) = 0;
     virtual bool hasParam() = 0;
     virtual std::string getRange() = 0;
@@ -70,15 +70,15 @@ public:
     ParamNone(const std::string &name_,
               const std::string &shortName_,
               const std::string &describtion_,
-              const std::list<std::string> &dep) :
+              const std::list<std::string> &dep = std::list<std::string>()) :
               ParamBase(name_, shortName_, describtion_, dep){}
     ~ParamNone() = default;
 
 protected:
-    bool set(int) override
-    {
-        return false;
-    }
+    // bool set(int) override
+    // {
+    //     return false;
+    // }
 
     bool set(const std::string &) override
     {
@@ -90,7 +90,117 @@ protected:
         return "";
     }
 
-    bool hasParam() override;
+    bool hasParam() override
+    {
+        return false;
+    }
+};
+
+template<class Target, class Source, bool same>
+class TypeCast
+{
+public:
+    static Target cast(const Source &source)
+    {
+        Target ret;
+        std::stringstream ss;
+        ss << source;
+        ss >> ret;   
+        return ret;
+    }
+};
+
+template<class Target>
+class TypeCast<Target, std::string, true>
+{
+public:
+    static Target cast(const std::string &source)
+    {
+        return source;
+    }
+};
+
+template<class Target>
+struct Reader
+{
+    Target operator()(const std::string &str)
+    {
+        return TypeCast<Target, std::string, 
+                        std::is_same<Target, std::string>::value>::cast(str);
+    }
+};
+
+// template<template<typename T, typename T2 = std::allocator<T>> class STL,
+//          class Target, bool same>
+// class RangeTypeJudge
+// {
+// public:
+//     static Target judge(const Source &source)
+//     {
+//     }
+// };
+
+// template<template<typename T, typename T2 = std::allocator<T>> class STL,
+//          class Target, bool same>
+// class RangeTypeJudge<STL, std::string, true>
+// {
+// public:
+//     static Target judge(const Source &source)
+//     {
+//     }
+// };
+
+// template<template<typename T, typename T2 = std::allocator<T>> class STL,
+//          class T>
+// struct RangeJudge
+// {
+//     bool operator()(const T value, STL<T> range)
+//     {
+
+//     }
+// };
+
+template<template<typename T, typename T2 = std::allocator<T>> class STL,
+         class T>
+class ParamWithValue : public ParamBase
+{
+public:
+    ParamWithValue(const std::string &name_,
+                const std::string &shortName_,
+                const std::string &describtion_,
+                const std::list<std::string> &dep_,
+                const STL<T> &range_) :
+                range(range_),
+                ParamBase(name_, shortName_, describtion_, dep_){}
+    ~ParamWithValue() = default;
+
+    STL<T> &get()
+    {
+        return data;
+    }
+
+protected:
+    bool set(const std::string &value)
+    {
+        T ret = Reader<T>()(value);
+        // if (!RangeJudge<STL, T>(ret, range))
+        //     return false;
+
+        data.push_back(ret);
+        return true;
+    }
+    bool hasParam()
+    {
+        return true;
+    }
+    std::string getRange()
+    {
+        return "out of range";
+    }
+
+private:
+    STL<T> data;
+    STL<T> range;
 };
 
 template<template<typename T, typename T2 = std::allocator<T>> class STL>
@@ -114,20 +224,20 @@ public:
     }
 
 protected:
-    bool set(int value) override
-    {
-        if (range.size() > 0 && (range.front() > value || range.back() < value))
-        {
-            CmdLineError err;
-            err << "value range is " << range.front() << " to " << range.back()
-                << " , " << value << " is out of range";
-            throw err;
-            return false;
-        }
+    // bool set(int value) override
+    // {
+    //     if (range.size() > 0 && (range.front() > value || range.back() < value))
+    //     {
+    //         CmdLineError err;
+    //         err << "value range is " << range.front() << " to " << range.back()
+    //             << " , " << value << " is out of range";
+    //         throw err;
+    //         return false;
+    //     }
             
-        data.push_back(value);
-        return true;
-    }
+    //     data.push_back(value);
+    //     return true;
+    // }
 
     bool set(const std::string &value) override
     {
@@ -174,10 +284,10 @@ public:
     }
 
 protected:
-    bool set(int value) override
-    {
-        return false;
-    }
+    // bool set(int value) override
+    // {
+    //     return false;
+    // }
 
     bool set(const std::string &value) override
     {
@@ -235,24 +345,15 @@ public:
     CmdLine() = default;
     ~CmdLine() = default;
 
-    template<template<typename T, typename T2 = std::allocator<T>> class STL>
+    template<template<typename T, typename T2 = std::allocator<T>> class STL,
+             class T, class S = STL<T>>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, STL<int> r, 
-             std::list<std::string> dep = std::list<std::string>())
+             const std::string &describtion, 
+             std::list<std::string> dep = std::list<std::string>(), S r = S())
     {
-        paramTable.emplace_back(std::make_shared<ParamInt<STL>>(name, 
+        paramTable.emplace_back(std::make_shared<ParamWithValue<STL, T>>(name, 
                                                             shortName,
-                                                        describtion, r, dep));
-    }
-
-    template<template<typename T, typename T2 = std::allocator<T>> class STL>
-    void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, STL<std::string> r,
-             std::list<std::string> dep = std::list<std::string>())
-    {
-        paramTable.emplace_back(std::make_shared<ParamStr<STL>>(name, 
-                                                            shortName,
-                                                        describtion, r, dep));
+                                                        describtion, dep, r));
     }
 
     void add(const std::string &shortName, const std::string &name,
@@ -264,32 +365,16 @@ public:
                                                             describtion, dep));
     }
 
-    template<template<typename T, typename T2 = std::allocator<T>> class STL>
-    bool get(const std::string &name, STL<int> &t)
+    template<template<typename T, typename T2 = std::allocator<T>> class STL,
+             class T>
+    bool get(const std::string &name, STL<T> &t)
     {
         for (auto &l : paramTable)
         {
             if ((l->getName() == name || l->getShortName() == name) &&
                  l->getEnable())
             {
-                auto p = std::dynamic_pointer_cast<ParamInt<STL>>(l);
-                t.clear();
-                t = p->get();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    template<template<typename T, typename T2 = std::allocator<T>> class STL>
-    bool get(const std::string &name, STL<std::string> &t)
-    {
-        for (auto &l : paramTable)
-        {
-            if ((l->getName() == name || l->getShortName() == name) &&
-                 l->getEnable())
-            {
-                auto p = std::dynamic_pointer_cast<ParamStr<STL>>(l);
+                auto p = std::dynamic_pointer_cast<ParamWithValue<STL, T>>(l);
                 t.clear();
                 t = p->get();
                 return true;

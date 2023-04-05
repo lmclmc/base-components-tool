@@ -12,8 +12,7 @@ void CmdLine::parse(int argc, char *argv[])
     cmd = argv[0];
     paramTable.emplace_back(std::make_shared<ParamNone>("--help", 
                                                         "-h",
-                                                        "print help message",
-                                                        std::list<std::string>()));
+                                                        "print help message"));
     std::shared_ptr<ParamBase> pB = nullptr;
     bool bSearch = false;
     try
@@ -45,12 +44,7 @@ void CmdLine::parse(int argc, char *argv[])
                 if (!pB) 
                     showHelp();
 
-                int value = ::atoi(argv[i]);
-                if (value || (!value && !strcmp(argv[i], "0")))
-                    pB->set(value);
-                else
-                    pB->set(argv[i]);
-
+                pB->set(argv[i]);
             }
         }
     }
@@ -134,11 +128,6 @@ std::string ParamBase::getName()
 std::string ParamBase::getShortName()
 {
     return mShortName;
-}
-
-bool ParamNone::hasParam()
-{
-    return false;
 }
 
 void ParamBase::setEnable(bool enable)
