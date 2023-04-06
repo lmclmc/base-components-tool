@@ -46,14 +46,13 @@ public:
 
     virtual bool set(const std::string &) = 0;
     virtual bool hasParam() = 0;
-    virtual std::string getRange() = 0;
+    virtual std::string getRangeStr() = 0;
 
     void setEnable(bool);
     bool getEnable();
     std::string getName();
     std::string getShortName();
     std::string getDescription();
-    std::string getRangeStr();
     std::list<std::string> &getDepList();
 
 private:
@@ -75,17 +74,12 @@ public:
     ~ParamNone() = default;
 
 protected:
-    // bool set(int) override
-    // {
-    //     return false;
-    // }
-
     bool set(const std::string &) override
     {
         return false;
     }
 
-    std::string getRange() override
+    std::string getRangeStr() override
     {
         return "";
     }
@@ -96,46 +90,36 @@ protected:
     }
 };
 
-template<class Target, class Source, bool same>
-class TypeCast
+template<class Target, bool same>
+class Reader
 {
 public:
-    static Target cast(const Source &source)
+    Target operator()(const std::string &str)
+    {
+        return str;
+    }
+};
+
+template<class Target>
+class Reader<Target, true>
+{
+public:
+    Target operator()(const std::string &str)
     {
         Target ret;
         std::stringstream ss;
-        ss << source;
+        ss << str;
         ss >> ret;   
         return ret;
     }
 };
 
-template<class Target>
-class TypeCast<Target, std::string, true>
-{
-public:
-    static Target cast(const std::string &source)
-    {
-        return source;
-    }
-};
-
-template<class Target>
-struct Reader
-{
-    Target operator()(const std::string &str)
-    {
-        return TypeCast<Target, std::string, 
-                        std::is_same<Target, std::string>::value>::cast(str);
-    }
-};
-
-template<template<typename T, typename T2 = std::allocator<T>> class STL,
+template<template<typename T, typename T1 = std::allocator<T>> class STL,
          class T, bool same>
-class RangeTypeJudge
+class RangeJudge
 {
 public:
-    static bool judge(const STL<T> &range, const T &value)
+    bool operator()(const T &value, const STL<T> &range)
     {
         if (range.size() > 0)
         {
@@ -157,12 +141,12 @@ public:
     }
 };
 
-template<template<typename T, typename T2 = std::allocator<T>> class STL,
+template<template<typename T, typename T1 = std::allocator<T>> class STL,
          class T>
-class RangeTypeJudge<STL, T, true>
+class RangeJudge<STL, T, true>
 {
 public:
-    static bool judge(const STL<T> &range, const T &value)
+    bool operator()(const T &value, const STL<T> &range)
     {
         if (range.size() > 0 && (range.front() > value || range.back() < value))
         {
@@ -177,13 +161,37 @@ public:
     }
 };
 
-template<template<typename T, typename T2 = std::allocator<T>> class STL,
-         class T>
-struct RangeJudge
+template<class T, bool same>
+class RangeToStr
 {
-    bool operator()(const T value, STL<T> range)
+public:
+    std::string operator()(const T &range)
     {
-        return RangeTypeJudge<STL, T, std::is_same<T, int>::value>::judge(range, value);
+        if (!range.size())
+            return "";
+
+        std::string str("[");
+        for (auto &r : range)
+        {
+            str += r;
+            str += "  ";
+        }
+        str += "]";
+        return str;
+    }
+};
+
+template<class T>
+class RangeToStr<T, true>
+{
+public:
+    std::string operator()(const T &range)
+    {
+        if (!range.size())
+            return "";
+
+        return std::string("[") + std::to_string(range.front()) + " , " 
+              + std::to_string(range.back()) + "]";
     }
 };
 
@@ -209,8 +217,8 @@ public:
 protected:
     bool set(const std::string &value)
     {
-        T ret = Reader<T>()(value);
-        if (!RangeJudge<STL, T>()(ret, range))
+        T ret = Reader<T, std::is_same<T, int>::value>()(value);
+        if (!RangeJudge<STL, T, std::is_same<T, int>::value>()(ret, range))
             return false;
 
         data.push_back(ret);
@@ -220,9 +228,9 @@ protected:
     {
         return true;
     }
-    std::string getRange()
+    std::string getRangeStr()
     {
-        return "out of range";
+        return RangeToStr<STL<T>, std::is_same<T, int>::value>()(range);
     }
 
 private:
@@ -271,7 +279,7 @@ protected:
         return false;
     }
 
-    std::string getRange() override
+    std::string getRangeStr() override
     {
         if (!range.size())
             return "";
@@ -341,7 +349,7 @@ protected:
         return true;
     }
 
-    std::string getRange() override
+    std::string getRangeStr() override
     {
         if (!range.size())
             return "";

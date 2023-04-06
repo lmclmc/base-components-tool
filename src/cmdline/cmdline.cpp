@@ -101,18 +101,13 @@ void CmdLine::showHelp()
                   << l->getShortName()<< ", "  <<std::left << std::setfill(' ') 
                   << std::setw(25) << l->getName() << l->getDescription() 
                   << std::endl;
-        std::string str = l->getRange();
+        std::string str = l->getRangeStr();
         if (!str.empty())
             std::cout <<std::left << std::setfill(' ') 
                       << std::setw(36) << " " << str << std::endl;
     }
 
     exit(0);
-}
-
-std::string ParamBase::getRangeStr()
-{
-    return getRange();
 }
 
 std::string ParamBase::getDescription()
