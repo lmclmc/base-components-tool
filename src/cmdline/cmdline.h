@@ -108,8 +108,13 @@ public:
     {
         Target ret;
         std::stringstream ss;
-        ss << str;
-        ss >> ret;   
+        if (!(ss << str && ss >> ret && ss.eof()))
+        {
+            CmdLineError err;
+            err << "param error \"" << str << "\"";
+            throw err;
+        }
+       
         return ret;
     }
 };
