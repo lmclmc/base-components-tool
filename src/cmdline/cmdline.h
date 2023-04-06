@@ -130,35 +130,62 @@ struct Reader
     }
 };
 
-// template<template<typename T, typename T2 = std::allocator<T>> class STL,
-//          class Target, bool same>
-// class RangeTypeJudge
-// {
-// public:
-//     static Target judge(const Source &source)
-//     {
-//     }
-// };
+template<template<typename T, typename T2 = std::allocator<T>> class STL,
+         class T, bool same>
+class RangeTypeJudge
+{
+public:
+    static bool judge(const STL<T> &range, const T &value)
+    {
+        if (range.size() > 0)
+        {
+            for (auto &r : range)
+            {
+                if (value == r)
+                    return true;
+            }
+            CmdLineError err;
+            err << "value \"" << value << "\" is out of range \n    ";
+            for (auto &r : range)
+                 err << r << "  ";
+            
+            throw err;
+            return false;
+        }
+   
+        return true;
+    }
+};
 
-// template<template<typename T, typename T2 = std::allocator<T>> class STL,
-//          class Target, bool same>
-// class RangeTypeJudge<STL, std::string, true>
-// {
-// public:
-//     static Target judge(const Source &source)
-//     {
-//     }
-// };
+template<template<typename T, typename T2 = std::allocator<T>> class STL,
+         class T>
+class RangeTypeJudge<STL, T, true>
+{
+public:
+    static bool judge(const STL<T> &range, const T &value)
+    {
+        if (range.size() > 0 && (range.front() > value || range.back() < value))
+        {
+            CmdLineError err;
+            err << "value range is " << range.front() << " to " << range.back()
+                << " , " << value << " is out of range";
+            throw err;
+            return false;
+        }
+            
+        return true;
+    }
+};
 
-// template<template<typename T, typename T2 = std::allocator<T>> class STL,
-//          class T>
-// struct RangeJudge
-// {
-//     bool operator()(const T value, STL<T> range)
-//     {
-
-//     }
-// };
+template<template<typename T, typename T2 = std::allocator<T>> class STL,
+         class T>
+struct RangeJudge
+{
+    bool operator()(const T value, STL<T> range)
+    {
+        return RangeTypeJudge<STL, T, std::is_same<T, int>::value>::judge(range, value);
+    }
+};
 
 template<template<typename T, typename T2 = std::allocator<T>> class STL,
          class T>
@@ -183,8 +210,8 @@ protected:
     bool set(const std::string &value)
     {
         T ret = Reader<T>()(value);
-        // if (!RangeJudge<STL, T>(ret, range))
-        //     return false;
+        if (!RangeJudge<STL, T>()(ret, range))
+            return false;
 
         data.push_back(ret);
         return true;
