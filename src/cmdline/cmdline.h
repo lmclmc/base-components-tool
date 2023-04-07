@@ -90,7 +90,7 @@ protected:
     }
 };
 
-template<class Target, bool same>
+template<class Target>
 class Reader
 {
 public:
@@ -100,13 +100,13 @@ public:
     }
 };
 
-template<class Target>
-class Reader<Target, true>
+template<>
+class Reader<int>
 {
 public:
-    Target operator()(const std::string &str)
+    int operator()(const std::string &str)
     {
-        Target ret;
+        int ret;
         std::stringstream ss;
         if (!(ss << str && ss >> ret && ss.eof()))
         {
@@ -120,7 +120,7 @@ public:
 };
 
 template<template<typename T, typename T1 = std::allocator<T>> class STL,
-         class T, bool same>
+         class T>
 class RangeJudge
 {
 public:
@@ -146,12 +146,11 @@ public:
     }
 };
 
-template<template<typename T, typename T1 = std::allocator<T>> class STL,
-         class T>
-class RangeJudge<STL, T, true>
+template<template<typename T, typename T1 = std::allocator<T>> class STL>
+class RangeJudge<STL, int>
 {
 public:
-    bool operator()(const T &value, const STL<T> &range)
+    bool operator()(const int &value, const STL<int> &range)
     {
         if (range.size() > 0 && (range.front() > value || range.back() < value))
         {
@@ -166,11 +165,12 @@ public:
     }
 };
 
-template<class T, bool same>
+template<template<typename T, typename T1 = std::allocator<T>> class STL,
+         class T>
 class RangeToStr
 {
 public:
-    std::string operator()(const T &range)
+    std::string operator()(const STL<T> &range)
     {
         if (!range.size())
             return "";
@@ -186,11 +186,11 @@ public:
     }
 };
 
-template<class T>
-class RangeToStr<T, true>
+template<template<typename T, typename T1 = std::allocator<T>> class STL>
+class RangeToStr<STL, int>
 {
 public:
-    std::string operator()(const T &range)
+    std::string operator()(const STL<int> &range)
     {
         if (!range.size())
             return "";
@@ -222,8 +222,8 @@ public:
 protected:
     bool set(const std::string &value)
     {
-        T ret = Reader<T, std::is_same<T, int>::value>()(value);
-        if (!RangeJudge<STL, T, std::is_same<T, int>::value>()(ret, range))
+        T ret = Reader<T>()(value);
+        if (!RangeJudge<STL, T>()(ret, range))
             return false;
 
         data.push_back(ret);
@@ -235,7 +235,7 @@ protected:
     }
     std::string getRangeStr()
     {
-        return RangeToStr<STL<T>, std::is_same<T, int>::value>()(range);
+        return RangeToStr<STL, T>()(range);
     }
 
 private:
