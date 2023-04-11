@@ -110,11 +110,19 @@ Logger &Logger::operator << (uint64_t num)
     return *this;
 }
 
-Logger& Logger::operator << (uint32_t num)
+Logger &Logger::operator << (uint32_t num)
 {
     if (!judgeLevel()) return *this;
 
     strLog += std::to_string(num);
+    return *this;
+}
+
+Logger &Logger::operator << (double d)
+{
+    if (!judgeLevel()) return *this;
+
+    strLog += std::to_string(d);
     return *this;
 }
 

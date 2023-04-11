@@ -41,6 +41,7 @@ public:
     Logger &operator << (const char *);
     Logger &operator << (uint64_t);
     Logger &operator << (uint32_t);
+    Logger &operator << (double);
     Logger &operator << (int);
     Logger &operator << (long int);
     Logger &operator << (LogFormat);

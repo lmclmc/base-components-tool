@@ -8,6 +8,51 @@
 
 namespace lmc
 {
+template<typename ...Args>
+struct TypeList;
+
+template<typename ...Args>
+struct PushType;
+
+template<typename NewType, typename ...Args>
+struct PushType<NewType, TypeList<Args...>>
+{
+    using type = TypeList<NewType, Args...>;
+};
+
+using EmptyTypeList = TypeList<>;
+#define PUSH_UNSIGNED_CHAR  PushType<unsigned char, EmptyTypeList>::type
+#define PUSH_UNSIGNED_SHORT PushType<unsigned short, PUSH_UNSIGNED_CHAR>::type
+#define PUSH_SHORT          PushType<short, PUSH_UNSIGNED_SHORT>::type
+#define PUSH_UNSIGNED_INT   PushType<unsigned int, PUSH_SHORT>::type
+#define PUSH_INT            PushType<int, PUSH_UNSIGNED_INT>::type
+#define PUSH_UNSIGNED_LONG  PushType<unsigned long, PUSH_INT>::type
+#define PUSH_LONG           PushType<long, PUSH_UNSIGNED_LONG>::type
+#define PUSH_FLOAT          PushType<float, PUSH_LONG>::type
+#define PUSH_DOUBLE         PushType<double, PUSH_FLOAT>::type
+using NumTypeList = PUSH_DOUBLE;
+
+template<typename TargetType, typename TypeList>
+struct Search;
+
+template<typename TargetType, typename ...Args>
+struct Search<TargetType, TypeList<TargetType, Args...>>
+{
+    constexpr static bool status = true;
+};
+
+template<typename TargetType, typename HeadType, typename ...Args>
+struct Search<TargetType, TypeList<HeadType, Args...>>
+{
+    constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
+};
+
+template<typename TargetType>
+struct Search<TargetType, TypeList<>>
+{
+    constexpr static bool status = false;
+};
+
 class CmdLineError : public std::exception {
 public:
     CmdLineError(const std::string &msg = ""): msg(msg){}
@@ -90,23 +135,21 @@ protected:
     }
 };
 
-template<class Target>
-class Reader
+template<class Target, bool IsNum>
+struct Reader
 {
-public:
     Target operator()(const std::string &str)
     {
         return str;
     }
 };
 
-template<>
-class Reader<int>
+template<class Target>
+struct Reader<Target, true>
 {
-public:
-    int operator()(const std::string &str)
+    Target operator()(const std::string &str)
     {
-        int ret;
+        Target ret;
         std::stringstream ss;
         if (!(ss << str && ss >> ret && ss.eof()))
         {
@@ -120,10 +163,9 @@ public:
 };
 
 template<template<typename T, typename T1 = std::allocator<T>> class STL,
-         class T>
-class RangeJudge
+         typename T, bool IsNum>
+struct RangeJudge
 {
-public:
     bool operator()(const T &value, const STL<T> &range)
     {
         if (range.size() > 0)
@@ -146,11 +188,11 @@ public:
     }
 };
 
-template<template<typename T, typename T1 = std::allocator<T>> class STL>
-class RangeJudge<STL, int>
+template<template<typename T, typename T1 = std::allocator<T>> class STL,
+         typename T>
+struct RangeJudge<STL, T, true>
 {
-public:
-    bool operator()(const int &value, const STL<int> &range)
+    bool operator()(const T &value, const STL<T> &range)
     {
         if (range.size() > 0 && (range.front() > value || range.back() < value))
         {
@@ -165,12 +207,10 @@ public:
     }
 };
 
-template<template<typename T, typename T1 = std::allocator<T>> class STL,
-         class T>
-class RangeToStr
+template<class T, bool IsNum>
+struct RangeToStr
 {
-public:
-    std::string operator()(const STL<T> &range)
+    std::string operator()(const T &range)
     {
         if (!range.size())
             return "";
@@ -186,11 +226,10 @@ public:
     }
 };
 
-template<template<typename T, typename T1 = std::allocator<T>> class STL>
-class RangeToStr<STL, int>
+template<class T>
+struct RangeToStr<T, true>
 {
-public:
-    std::string operator()(const STL<int> &range)
+    std::string operator()(const T &range)
     {
         if (!range.size())
             return "";
@@ -222,8 +261,8 @@ public:
 protected:
     bool set(const std::string &value)
     {
-        T ret = Reader<T>()(value);
-        if (!RangeJudge<STL, T>()(ret, range))
+        T ret = Reader<T, Search<T, NumTypeList>::status>()(value);
+        if (!RangeJudge<STL, T, Search<T, NumTypeList>::status>()(ret, range))
             return false;
 
         data.push_back(ret);
@@ -235,7 +274,7 @@ protected:
     }
     std::string getRangeStr()
     {
-        return RangeToStr<STL, T>()(range);
+        return RangeToStr<STL<T>, Search<T, NumTypeList>::status>()(range);
     }
 
 private:
