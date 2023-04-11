@@ -241,7 +241,7 @@ struct RangeToStr<T, true>
 
 template<template<typename T, typename T2 = std::allocator<T>> class STL,
          class T>
-class ParamWithValue : public ParamBase
+class ParamWithValue final : public ParamBase
 {
 public:
     ParamWithValue(const std::string &name_,
@@ -259,7 +259,7 @@ public:
     }
 
 protected:
-    bool set(const std::string &value)
+    bool set(const std::string &value) override
     {
         T ret = Reader<T, Search<T, NumTypeList>::status>()(value);
         if (!RangeJudge<STL, T, Search<T, NumTypeList>::status>()(ret, range))
@@ -268,11 +268,11 @@ protected:
         data.push_back(ret);
         return true;
     }
-    bool hasParam()
+    bool hasParam() override
     {
         return true;
     }
-    std::string getRangeStr()
+    std::string getRangeStr() override
     {
         return RangeToStr<STL<T>, Search<T, NumTypeList>::status>()(range);
     }
