@@ -64,12 +64,6 @@ public:
         return *this;
     }
 
-    CmdLineError &operator << (const char *str)
-    {
-        msg += str;
-        return *this;
-    }
-
     CmdLineError &operator << (int num)
     {
         msg += std::to_string(num);
