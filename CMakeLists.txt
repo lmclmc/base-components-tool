@@ -7,4 +7,4 @@ add_compile_options(-W)
 include_directories(src)
 
 add_subdirectory(src/)
-add_subdirectory(test/)
+add_subdirectory(demo/)
