@@ -32,7 +32,15 @@ int main(int argc, char *argv[])
     cmd->add<std::deque<std::string>>("-ds", "--dstring", "get deque string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::deque<int>>("-di", "--dint", "get deque int", {}, {44, 99});
-
+    cmd->add<std::queue<std::string>>("-dsss", "--queuestring", "get queue string", 
+                                      {}, std::queue<std::string>({"aaa", "vvv", "bbb", "rrr", "ttt"}));
+    cmd->add<std::queue<int>>("-diss", "--queueint", "get queue int", {}, std::queue<int>({44, 99}));
+    cmd->add<std::stack<std::string>>("-dsa", "--stackstring", "get stack string", 
+                                      {}, std::stack<std::string>({"aaa", "vvv", "bbb", "rrr", "ttt"}));
+    cmd->add<std::stack<int>>("-dix", "--stackint", "get stack int", {}, std::stack<int>({44, 99}));
+    // std::stack<int> a({23, 33, 44});
+   
+    // std::stack<int> b = a;
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
@@ -174,6 +182,58 @@ int main(int argc, char *argv[])
         for (auto &v : intDeque)
         {
             LOGGER << v;
+        }
+    }
+
+    std::queue<std::string> strQueue;
+    ret = cmd->get("--queuestring", strQueue);
+    if (ret)
+    {
+        int size = strQueue.size();
+        for (int i = 0; i < size; i++)
+        {
+            auto s = strQueue.front();
+            LOGGER << s;
+            strQueue.pop();
+        }
+    }
+
+    std::queue<int> intQueue;
+    ret = cmd->get("--queueint", intQueue);
+    if (ret)
+    {
+        int size = intQueue.size();
+        for (int i = 0; i < size; i++)
+        {
+            auto s = intQueue.front();
+            LOGGER << s;
+            intQueue.pop();
+        }
+    }
+
+    std::stack<std::string> strStack;
+    ret = cmd->get("--stackstring", strStack);
+    if (ret)
+    {
+        int size = strStack.size();
+        for (int i = 0; i < size; i++)
+        {
+            auto s = strStack.top();
+            LOGGER << s;
+            strStack.pop();
+        }
+    }
+
+    std::stack<int> intStack;
+    ret = cmd->get("--stackint", intStack);
+    if (ret)
+    {
+        int size = intStack.size();
+        for (int i = 0; i < size; i++)
+        {
+            auto s = intStack.top();
+            LOGGER << s;
+            intStack.pop();
         }
     }
 }
