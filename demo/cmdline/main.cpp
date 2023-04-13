@@ -5,6 +5,8 @@
 #include <vector>
 #include <list>
 #include <set>
+#include <queue>
+#include <stack>
 
 using namespace lmc;
 
@@ -22,6 +24,7 @@ int main(int argc, char *argv[])
     cmd->add<std::vector<std::string>>("-string", "--string", "get string");
     cmd->add<std::list<std::string>>("-ls", "--lstring", "get list string");
     cmd->add<std::set<std::string>>("-ss", "--sstring", "get set string");
+    cmd->add<std::set<int>>("-si", "--sint", "get set int", {}, {44, 99});
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
@@ -131,6 +134,16 @@ int main(int argc, char *argv[])
     if (ret)
     {
         for (auto &v : strSet)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::set<int> intSet;
+    ret = cmd->get("--sint", intSet);
+    if (ret)
+    {
+        for (auto &v : intSet)
         {
             LOGGER << v;
         }

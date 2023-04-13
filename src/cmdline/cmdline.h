@@ -192,11 +192,12 @@ struct RangeJudge<T, STL_T, true>
 {
     bool operator()(const T &value, const STL_T &range)
     {
-        if (range.size() > 0 && (range.front() > value || range.back() < value))
+        if (range.size() > 0 && (*range.begin() > value || 
+            *(--range.end()) < value))
         {
             CmdLineError err;
-            err << "value range is " << range.front() << " to " << range.back()
-                << " , " << value << " is out of range";
+            err << "value range is " << *range.begin() << " to " 
+                << *(--range.end()) << " , " << value << " is out of range";
             throw err;
             return false;
         }
@@ -232,8 +233,8 @@ struct RangeToStr<STL_T, true>
         if (!range.size())
             return "";
 
-        return std::string("[") + std::to_string(range.front()) + " , " 
-              + std::to_string(range.back()) + "]";
+        return std::string("[") + std::to_string(*range.begin()) + " , " 
+              + std::to_string(*(--range.end())) + "]";
     }
 };
 
