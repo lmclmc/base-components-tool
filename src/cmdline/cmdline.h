@@ -156,11 +156,10 @@ struct Reader<Target, true>
     }
 };
 
-template<template<typename T, typename T1 = std::allocator<T>> class STL,
-         typename T, bool IsNum>
+template<typename T, typename STL_T, bool IsNum>
 struct RangeJudge
 {
-    bool operator()(const T &value, const STL<T> &range)
+    bool operator()(const T &value, const STL_T &range)
     {
         if (range.size() > 0)
         {
@@ -182,11 +181,10 @@ struct RangeJudge
     }
 };
 
-template<template<typename T, typename T1 = std::allocator<T>> class STL,
-         typename T>
-struct RangeJudge<STL, T, true>
+template<typename T, typename STL_T>
+struct RangeJudge<T, STL_T, true>
 {
-    bool operator()(const T &value, const STL<T> &range)
+    bool operator()(const T &value, const STL_T &range)
     {
         if (range.size() > 0 && (range.front() > value || range.back() < value))
         {
@@ -201,10 +199,10 @@ struct RangeJudge<STL, T, true>
     }
 };
 
-template<class T, bool IsNum>
+template<class STL_T, bool IsNum>
 struct RangeToStr
 {
-    std::string operator()(const T &range)
+    std::string operator()(const STL_T &range)
     {
         if (!range.size())
             return "";
@@ -220,10 +218,10 @@ struct RangeToStr
     }
 };
 
-template<class T>
-struct RangeToStr<T, true>
+template<class STL_T>
+struct RangeToStr<STL_T, true>
 {
-    std::string operator()(const T &range)
+    std::string operator()(const STL_T &range)
     {
         if (!range.size())
             return "";
@@ -233,21 +231,30 @@ struct RangeToStr<T, true>
     }
 };
 
-template<template<typename T, typename T2 = std::allocator<T>> class STL,
-         class T>
+template<typename ...Args>
+struct BreakDown;
+
+template<template<typename ...Args> class STL, typename T, typename ...Args>
+struct BreakDown<STL<T, Args...>>
+{
+    using type = T;
+};
+
+template<class STL_T>
 class ParamWithValue final : public ParamBase
 {
+    using T = typename BreakDown<STL_T>::type;
 public:
     ParamWithValue(const std::string &name_,
                 const std::string &shortName_,
                 const std::string &describtion_,
                 const std::list<std::string> &dep_,
-                const STL<T> &range_) :
+                const STL_T &range_) :
                 range(range_),
                 ParamBase(name_, shortName_, describtion_, dep_){}
     ~ParamWithValue() = default;
 
-    STL<T> &get()
+    STL_T &get()
     {
         return data;
     }
@@ -256,7 +263,7 @@ protected:
     bool set(const std::string &value) override
     {
         T ret = Reader<T, Search<T, NumTypeList>::status>()(value);
-        if (!RangeJudge<STL, T, Search<T, NumTypeList>::status>()(ret, range))
+        if (!RangeJudge<T, STL_T, Search<T, NumTypeList>::status>()(ret, range))
             return false;
 
         data.push_back(ret);
@@ -268,12 +275,12 @@ protected:
     }
     std::string getRangeStr() override
     {
-        return RangeToStr<STL<T>, Search<T, NumTypeList>::status>()(range);
+       return RangeToStr<STL_T, Search<T, NumTypeList>::status>()(range);
     }
 
 private:
-    STL<T> data;
-    STL<T> range;
+    STL_T data;
+    STL_T range;
 };
 
 class CmdLine
@@ -282,13 +289,12 @@ public:
     CmdLine() = default;
     ~CmdLine() = default;
 
-    template<template<typename T, typename T2 = std::allocator<T>> class STL,
-             class T, class S = STL<T>>
+    template<class STL_T>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, 
-             std::list<std::string> dep = std::list<std::string>(), S r = S())
+             std::list<std::string> dep = std::list<std::string>(), STL_T r = STL_T())
     {
-        paramTable.emplace_back(std::make_shared<ParamWithValue<STL, T>>(name, 
+        paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
                                                             shortName,
                                                         describtion, dep, r));
     }
@@ -302,16 +308,15 @@ public:
                                                             describtion, dep));
     }
 
-    template<template<typename T, typename T2 = std::allocator<T>> class STL,
-             class T>
-    bool get(const std::string &name, STL<T> &t)
+    template<class STL_T>
+    bool get(const std::string &name, STL_T &t)
     {
         for (auto &l : paramTable)
         {
             if ((l->getName() == name || l->getShortName() == name) &&
                  l->getEnable())
             {
-                auto p = std::dynamic_pointer_cast<ParamWithValue<STL, T>>(l);
+                auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T>>(l);
                 t.clear();
                 t = p->get();
                 return true;

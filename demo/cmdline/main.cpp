@@ -9,22 +9,22 @@ using namespace lmc;
 int main(int argc, char *argv[])
 {
     CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
-    cmd->add<std::vector, short>("-s", "--short", "get short");
-    cmd->add<std::vector, unsigned short>("-us", "--us", "get unsigned short");
-    cmd->add<std::vector, int>("-i", "--int", "get int");
-    cmd->add<std::vector, unsigned int>("-ui", "--ui", "get unsigned int");
-    cmd->add<std::vector, float>("-f", "--float", "get float", {}, {23, 100});
-    cmd->add<std::vector, double>("-d", "--double", "get double");
-    cmd->add<std::vector, long>("-l", "--long", "get long");
-    cmd->add<std::vector, unsigned long>("-ul", "--ul", "get unsigned long");
-    cmd->add<std::vector, std::string>("-string", "--string", "get string");
-    cmd->add<std::list, std::string>("-ls", "--lstring", "get list string");
+    cmd->add<std::vector<short>>("-s", "--short", "get short", {}, {33, 55});
+    cmd->add<std::vector<unsigned short>>("-us", "--us", "get unsigned short");
+    cmd->add<std::vector<int>>("-i", "--int", "get int");
+    cmd->add<std::vector<unsigned int>>("-ui", "--ui", "get unsigned int");
+    cmd->add<std::vector<float>>("-f", "--float", "get float", {}, {23, 100});
+    cmd->add<std::vector<double>>("-d", "--double", "get double");
+    cmd->add<std::vector<long>>("-l", "--long", "get long");
+    cmd->add<std::vector<unsigned long>>("-ul", "--ul", "get unsigned long");
+    cmd->add<std::vector<std::string>>("-string", "--string", "get string");
+    cmd->add<std::list<std::string>>("-ls", "--lstring", "get list string");
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
 
     std::vector<short> sVector;
-    bool ret = cmd->get<std::vector, short>("--short", sVector);
+    bool ret = cmd->get("--short", sVector);
     if (ret)
     {
         for (auto &v : sVector)
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<unsigned short> usVector;
-    ret = cmd->get<std::vector, unsigned short>("--us", usVector);
+    ret = cmd->get("--us", usVector);
     if (ret)
     {
         for (auto &v : usVector)
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<unsigned int> uiVector;
-    ret = cmd->get<std::vector, unsigned int>("--ui", uiVector);
+    ret = cmd->get("--ui", uiVector);
     if (ret)
     {
         for (auto &v : uiVector)
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<int> iVector;
-    ret = cmd->get<std::vector, int>("--int", iVector);
+    ret = cmd->get("--int", iVector);
     if (ret)
     {
         for (auto &v : iVector)
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<float> fVector;
-    ret = cmd->get<std::vector, float>("--float", fVector);
+    ret = cmd->get("--float", fVector);
     if (ret)
     {
         for (auto &v : fVector)
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<double> dVector;
-    ret = cmd->get<std::vector, double>("--double", dVector);
+    ret = cmd->get("--double", dVector);
     if (ret)
     {
         for (auto &v : dVector)
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<long> lVector;
-    ret = cmd->get<std::vector, long>("--long", lVector);
+    ret = cmd->get("--long", lVector);
     if (ret)
     {
         for (auto &v : lVector)
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     }
 
     std::vector<unsigned long> ulVector;
-    ret = cmd->get<std::vector, unsigned long>("--ul", ulVector);
+    ret = cmd->get("--ul", ulVector);
     if (ret)
     {
         for (auto &v : ulVector)
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
     }
  
     std::vector<std::string> strVector;
-    ret = cmd->get<std::vector, std::string>("--string", strVector);
+    ret = cmd->get("--string", strVector);
     if (ret)
     {
         for (auto &v : strVector)
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     }
 
     std::list<std::string> strList;
-    ret = cmd->get<std::list, std::string>("--lstring", strList);
+    ret = cmd->get("--lstring", strList);
     if (ret)
     {
         for (auto &v : strList)

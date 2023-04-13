@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
 {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
 
-    cmdline->add<std::list, int>("-a", "--add", "add timer");
-    cmdline->add<std::list, int>("-c", "--clear", "delay sometime clear timer");
+    cmdline->add<std::list<int>>("-a", "--add", "add timer");
+    cmdline->add<std::list<int>>("-c", "--clear", "delay sometime clear timer");
     cmdline->add("-d", "--default", "default mode");
 
     cmdline->parse(argc, argv);
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     else
     {
         std::list<int> sList;
-        bool ret = cmdline->get<std::list>("--add", sList);
+        bool ret = cmdline->get("--add", sList);
         if (!ret)
             exit(0);
 
