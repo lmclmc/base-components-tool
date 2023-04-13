@@ -7,6 +7,7 @@
 #include <sstream>
 #include <set>
 #include <vector>
+#include <deque>
 
 namespace lmc
 {
@@ -19,7 +20,7 @@ struct PushType;
 template<typename NewType, typename ...Args>
 struct PushType<NewType, TypeList<Args...>>
 {
-    using type = TypeList<NewType, Args...>;
+    using type = TypeList<Args..., NewType>;
 };
 
 using EmptyTypeList = TypeList<>;
@@ -262,7 +263,7 @@ struct PushData<STL_T, T, 0>
     void operator()(STL_T &data, T &t)
     {
         
-        data.insert(t);
+        data.push_back(t);
     }
 };
 
@@ -280,6 +281,15 @@ struct PushData<STL_T, T, 2>
 {
     void operator()(STL_T &data, T &t)
     {
+        data.insert(t);
+    }
+};
+
+template<typename STL_T, typename T>
+struct PushData<STL_T, T, 3>
+{
+    void operator()(STL_T &data, T &t)
+    {
         data.push_back(t);
     }
 };
@@ -291,11 +301,13 @@ class ParamWithValue final : public ParamBase
     using ListType = typename ReBind<std::list, T>::type;
     using VectorType = typename ReBind<std::vector, T>::type;
     using SetType = typename ReBind<std::set, T>::type;
+    using DequeType = typename ReBind<std::deque, T>::type;
     using EmptyStl = TypeList<>;
     using PushListType = typename PushType<ListType, EmptyStl>::type;
     using PushVectorType = typename PushType<VectorType, PushListType>::type;
     using PushSetType = typename PushType<SetType, PushVectorType>::type;
-    using STLList = PushSetType;
+    using PushDequeType = typename PushType<DequeType, PushSetType>::type;
+    using STLList = PushDequeType;
 public:
     ParamWithValue(const std::string &name_,
                 const std::string &shortName_,
@@ -321,10 +333,12 @@ protected:
         PushData<STL_T, T, Search<STL_T, STLList>::value>()(data, ret);
         return true;
     }
+
     bool hasParam() override
     {
         return true;
     }
+
     std::string getRangeStr() override
     {
        return RangeToStr<STL_T, Search<T, NumTypeList>::status>()(range);

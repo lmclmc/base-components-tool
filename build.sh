@@ -8,7 +8,7 @@ rm -rf ${BUILD_DIR}
 mkdir ${BUILD_DIR}
 pushd ${BUILD_DIR}
 
-cmake ${CURRENT_DIR} -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-std=c++11 -s"
+cmake ${CURRENT_DIR} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-std=c++11 -g"
 make -j${CPU_NUM}
 make install
 popd

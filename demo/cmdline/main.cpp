@@ -7,6 +7,7 @@
 #include <set>
 #include <queue>
 #include <stack>
+#include <deque>
 
 using namespace lmc;
 
@@ -21,10 +22,17 @@ int main(int argc, char *argv[])
     cmd->add<std::vector<double>>("-d", "--double", "get double");
     cmd->add<std::vector<long>>("-l", "--long", "get long");
     cmd->add<std::vector<unsigned long>>("-ul", "--ul", "get unsigned long");
-    cmd->add<std::vector<std::string>>("-string", "--string", "get string");
-    cmd->add<std::list<std::string>>("-ls", "--lstring", "get list string");
-    cmd->add<std::set<std::string>>("-ss", "--sstring", "get set string");
+    cmd->add<std::vector<std::string>>("-string", "--string", "get string", 
+                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::list<std::string>>("-ls", "--lstring", "get list string", 
+                                     {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::set<std::string>>("-ss", "--sstring", "get set string", 
+                                    {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::set<int>>("-si", "--sint", "get set int", {}, {44, 99});
+    cmd->add<std::deque<std::string>>("-ds", "--dstring", "get deque string", 
+                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::deque<int>>("-di", "--dint", "get deque int", {}, {44, 99});
+
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
@@ -144,6 +152,26 @@ int main(int argc, char *argv[])
     if (ret)
     {
         for (auto &v : intSet)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::deque<std::string> strDeque;
+    ret = cmd->get("--dstring", strDeque);
+    if (ret)
+    {
+        for (auto &v : strDeque)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::deque<int> intDeque;
+    ret = cmd->get("--dint", intDeque);
+    if (ret)
+    {
+        for (auto &v : intDeque)
         {
             LOGGER << v;
         }
