@@ -37,6 +37,15 @@ using EmptyTypeList = TypeList<>;
 #define PUSH_DOUBLE         PushType<double, PUSH_FLOAT>::type
 using NumTypeList = PUSH_DOUBLE;
 
+typedef enum class STLType_ : unsigned char
+{
+    NONE, //none                    idx:-1
+    VLD, //vector list deque        idx:0 1 2
+    SET,   //set                    idx: 3
+    QUEUE,  //queue                 idx: 4
+    STACK,  //stack                 idx: 5
+} STLType;
+
 template<typename ...Args>
 struct Search;
 
@@ -45,6 +54,7 @@ struct Search<TargetType, TypeList<TargetType, Args...>>
 {
     constexpr static bool status = true;
     constexpr static int value = 0;
+    constexpr static STLType typeIdx = STLType::VLD;
 };
 
 template<typename TargetType, typename HeadType, typename ...Args>
@@ -53,6 +63,8 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
+    constexpr static STLType typeIdx = value == 5 ? STLType::STACK : value == 4 ? 
+                      STLType::QUEUE : value == 3 ? STLType::SET : STLType::VLD;
 };
 
 template<typename TargetType>
@@ -60,8 +72,8 @@ struct Search<TargetType, TypeList<>>
 {
     constexpr static bool status = false;
     constexpr static int value = -1;
+    constexpr static STLType typeIdx = STLType::NONE;
 };
-
 
 template<typename ...Args>
 struct BreakDown;
@@ -78,15 +90,14 @@ struct ReBind
     using type = STL<T>;
 };
 
-template<typename STL_T, typename T, int StlIdx>
-struct PushData;
+template<typename STL_T, typename T, STLType t>
+struct STLOperation;
 
 template<typename STL_T, typename T>
-struct PushData<STL_T, T, 0>
+struct STLOperation<STL_T, T, STLType::VLD>
 {
-    void operator()(STL_T &data, T &t)
+    static void push(STL_T &data, T &t)
     {
-        
         data.push_back(t);
     }
 
@@ -112,49 +123,27 @@ struct PushData<STL_T, T, 0>
 
         return str;
     }
-};
 
-template<typename STL_T, typename T>
-struct PushData<STL_T, T, 1>
-{
-    void operator()(STL_T &data, T &t)
+    static int getMin(STL_T &range)
     {
-        data.push_back(t);
+        return range.front();
     }
 
-    static bool traverse(STL_T &range, T &value)
+    static int getMax(STL_T &range)
     {
-        for (auto &r : range)
-        {
-            if (value == r)
-                return true;
-        }
-
-        return false;
-    }
-
-    static std::string getTraverseStr(const STL_T &range)
-    {
-        std::string str;
-        for (auto &r : range)
-        {
-            str += r;
-            str += ' ';
-        }
-
-        return str;
+        return range.back();
     }
 };
 
 template<typename STL_T, typename T>
-struct PushData<STL_T, T, 2>
+struct STLOperation<STL_T, T, STLType::SET>
 {
-    void operator()(STL_T &data, T &t)
+    static void push(STL_T &data, T &t)
     {
         data.insert(t);
     }
 
-    static bool traverse(STL_T &range, T &value)
+    static bool traverse(const STL_T &range, const T &value)
     {
         for (auto &r : range)
         {
@@ -176,61 +165,40 @@ struct PushData<STL_T, T, 2>
 
         return str;
     }
-};
 
-template<typename STL_T, typename T>
-struct PushData<STL_T, T, 3>
-{
-    void operator()(STL_T &data, T &t)
+    static int getMin(STL_T &range)
     {
-        data.push_back(t);
+        return *range.begin();
     }
 
-    static bool traverse(STL_T &range, T &value)
+    static int getMax(STL_T &range)
     {
-        for (auto &r : range)
-        {
-            if (value == r)
-                return true;
-        }
-
-        return false;
-    }
-
-    static std::string getTraverseStr(const STL_T &range)
-    {
-        std::string str;
-        for (auto &r : range)
-        {
-            str += r;
-            str += ' ';
-        }
-
-        return str;
+        return *(--range.end());
     }
 };
 
 template<typename STL_T, typename T>
-struct PushData<STL_T, T, 4>
+struct STLOperation<STL_T, T, STLType::QUEUE>
 {
-    void operator()(STL_T &data, T &t)
+    static void push(STL_T &data, T &t)
     {
         data.push(t);
     }
 
     static bool traverse(STL_T &range, T &value)
     {
-        bool status = false;
-        for (int i = 0; i < range.size(); i++)
-        {
-            if (value == range.front())
-                status = true;
+        STL_T tmp = range;
+        int size = tmp.size();
 
-            range.push(range.front());
-            range.pop();
+        for (int i = 0; i < size; i++)
+        {
+            if (value == tmp.front())
+                return true;
+
+            tmp.pop();
         }
 
-        return status;
+        return false;
     }
 
     static std::string getTraverseStr(STL_T &range)
@@ -247,31 +215,41 @@ struct PushData<STL_T, T, 4>
 
         return str;
     }
+
+    static int getMin(STL_T &range)
+    {
+        return range.front();
+    }
+
+    static int getMax(STL_T &range)
+    {
+        STL_T tmp = range;
+        tmp.pop();
+        return tmp.front();
+    }
 };
 
-
 template<typename STL_T, typename T>
-struct PushData<STL_T, T, 5>
+struct STLOperation<STL_T, T, STLType::STACK>
 {
-    void operator()(STL_T &data, T &t)
+    static void push(STL_T &data, T &t)
     {
         data.push(t);
     }
 
     static bool traverse(STL_T &range, T &value)
     {
-        bool status = false;
         STL_T tmp = range;
         int size = tmp.size();
         for (int i = 0; i < size; i++)
         {
             if (value == tmp.top())
-                status = true;
+                return true;
 
             tmp.pop();
         }
 
-        return status;
+        return false;
     }
 
     static std::string getTraverseStr(STL_T &range)
@@ -286,6 +264,27 @@ struct PushData<STL_T, T, 5>
             tmp.pop();
         }     
 
+        return str;
+    }
+
+    static int getMin(STL_T &range)
+    {
+        STL_T tmp = range;
+        tmp.pop();
+        return tmp.top();
+    }
+
+    static int getMax(STL_T &range)
+    {
+        return range.top();
+    }
+};
+
+template<class Target, bool IsNum>
+struct Reader
+{
+    Target operator()(const std::string &str)
+    {
         return str;
     }
 };
@@ -309,6 +308,99 @@ public:
 
 private:
     std::string msg;
+};
+
+template<class Target>
+struct Reader<Target, true>
+{
+    Target operator()(const std::string &str)
+    {
+        Target ret;
+        std::stringstream ss;
+        if (!(ss << str && ss >> ret && ss.eof()))
+        {
+            CmdLineError err;
+            err << "param error \"" << str << "\"";
+            throw err;
+        }
+       
+        return ret;
+    }
+};
+
+template<typename T, typename STL_T, typename STLList, bool IsNum>
+struct RangeJudge
+{
+    bool operator()(T &value, STL_T &range)
+    {
+        if (range.size() > 0)
+        {
+            if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::traverse(range, value))
+                return true;
+
+            CmdLineError err;
+            err << "value \"" << value << "\" is out of range \n    ";
+            
+            throw err;
+            return false;
+        }
+   
+        return true;
+    }
+};
+
+template<typename T, typename STL_T, typename STLList>
+struct RangeJudge<T, STL_T, STLList, true>
+{
+    bool operator()(T &value, STL_T &range)
+    {
+        if (range.size() > 0)
+        {
+            int min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
+            int max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
+            if (min > value || max < value)
+            {
+                CmdLineError err;
+                err << "value range is " << min << " to " 
+                    << max << " , " << value << " is out of range";
+                throw err;
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+
+template<class STL_T, class T, typename STLList, bool IsNum>
+struct RangeToStr
+{
+    std::string operator()(STL_T &range)
+    {
+        if (!range.size())
+            return "";
+
+        std::string str("[");
+        str += STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getTraverseStr(range);
+        str += "]";
+        return str;
+    }
+};
+
+template<class STL_T, class T, typename STLList>
+struct RangeToStr<STL_T, T, STLList, true>
+{
+    std::string operator()(STL_T &range)
+    {
+        if (!range.size())
+            return "";
+
+        int min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
+        int max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
+        return std::string("[") + std::to_string(min) + " , " 
+                                + std::to_string(max) + "]";
+
+    }
 };
 
 class ParamBase
@@ -366,206 +458,22 @@ protected:
     }
 };
 
-template<class Target, bool IsNum>
-struct Reader
-{
-    Target operator()(const std::string &str)
-    {
-        return str;
-    }
-};
-
-template<class Target>
-struct Reader<Target, true>
-{
-    Target operator()(const std::string &str)
-    {
-        Target ret;
-        std::stringstream ss;
-        if (!(ss << str && ss >> ret && ss.eof()))
-        {
-            CmdLineError err;
-            err << "param error \"" << str << "\"";
-            throw err;
-        }
-       
-        return ret;
-    }
-};
-
-template<typename T, typename STL_T, int idx, bool IsNum>
-struct RangeJudge
-{
-    bool operator()(T &value, STL_T &range)
-    {
-        if (range.size() > 0)
-        {
-            if (PushData<STL_T, T, idx>::traverse(range, value))
-                return true;
-
-            CmdLineError err;
-            err << "value \"" << value << "\" is out of range \n    ";
-            
-            throw err;
-            return false;
-        }
-   
-        return true;
-    }
-};
-
-template<typename T, typename STL_T, int idx>
-struct RangeJudge<T, STL_T, idx, true>
-{
-    bool operator()(const T &value, const STL_T &range)
-    {
-        if (range.size() > 0 && (*range.begin() > value || 
-            *(--range.end()) < value))
-        {
-            CmdLineError err;
-            err << "value range is " << *range.begin() << " to " 
-                << *(--range.end()) << " , " << value << " is out of range";
-            throw err;
-            return false;
-        }
-            
-        return true;
-    }
-};
-
-template<typename T, typename STL_T>
-struct RangeJudge<T, STL_T, 4, true>
-{
-    bool operator()(T &value, STL_T &range)
-    {
-        if (range.size() > 0)
-        {
-            STL_T tmp = range;
-            int min = tmp.front();
-            range.pop();
-            int max = tmp.front();
-
-            if (min > value || max < value)
-            {
-                CmdLineError err;
-                err << "value range is " << min << " to " 
-                    << max << " , " << value << " is out of range";
-                throw err;
-                return false;
-            }
-        }
-    
-        return true;
-    }
-};
-
-template<typename T, typename STL_T>
-struct RangeJudge<T, STL_T, 5, true>
-{
-    bool operator()(T &value, STL_T &range)
-    {
-        STL_T tmp = range;
-        if (range.size() > 0)
-        {
-            int max = tmp.top();
-            tmp.pop();
-            int min = tmp.top();
-
-            if (min > value || max < value)
-            {
-                CmdLineError err;
-                err << "value range is " << min << " to " 
-                    << max << " , " << value << " is out of range";
-                throw err;
-                return false;
-            }
-        }
-    
-        return true;
-    }
-};
-
-template<class STL_T, class T, int idx, bool IsNum>
-struct RangeToStr
-{
-    std::string operator()(STL_T &range)
-    {
-        if (!range.size())
-            return "";
-
-        std::string str("[");
-        str += PushData<STL_T, T, idx>::getTraverseStr(range);
-        str += "]";
-        return str;
-    }
-};
-
-template<class STL_T, class T, int idx>
-struct RangeToStr<STL_T, T, idx, true>
-{
-    std::string operator()(STL_T &range)
-    {
-        if (!range.size())
-            return "";
-
-        return std::string("[") + std::to_string(*range.begin()) + " , " 
-              + std::to_string(*(--range.end())) + "]";
-
-    }
-};
-
-template<class STL_T, class T>
-struct RangeToStr<STL_T, T, 4, true>
-{
-    std::string operator()(STL_T &range)
-    {
-        STL_T tmp = range;
-        if (!tmp.size())
-            return "";
-        
-        int min = tmp.front();
-        tmp.pop();
-        int max = tmp.front();
-
-        return std::string("[") + std::to_string(min) + " , " 
-              + std::to_string(max) + "]";
-    }
-};
-
-template<class STL_T, class T>
-struct RangeToStr<STL_T, T, 5, true>
-{
-    std::string operator()(STL_T &range)
-    {
-        STL_T tmp = range;
-        if (!tmp.size())
-            return "";
-        
-        int min = tmp.top();
-        tmp.pop();
-        int max = tmp.top();
-
-        return std::string("[") + std::to_string(min) + " , " 
-              + std::to_string(max) + "]";
-    }
-};
-
 template<class STL_T>
 class ParamWithValue final : public ParamBase
 {
     using T = typename BreakDown<STL_T>::type;
     using ListType = typename ReBind<std::list, T>::type;
     using VectorType = typename ReBind<std::vector, T>::type;
-    using SetType = typename ReBind<std::set, T>::type;
     using DequeType = typename ReBind<std::deque, T>::type;
+    using SetType = typename ReBind<std::set, T>::type;
     using QueueType = typename ReBind<std::queue, T>::type;
     using StackType = typename ReBind<std::stack, T>::type;
     using EmptyStl = TypeList<>;
     using PushListType = typename PushType<ListType, EmptyStl>::type;
     using PushVectorType = typename PushType<VectorType, PushListType>::type;
-    using PushSetType = typename PushType<SetType, PushVectorType>::type;
-    using PushDequeType = typename PushType<DequeType, PushSetType>::type;
-    using PushQueueType = typename PushType<QueueType, PushDequeType>::type;
+    using PushDequeType = typename PushType<DequeType, PushVectorType>::type;
+    using PushSetType = typename PushType<SetType, PushDequeType>::type;
+    using PushQueueType = typename PushType<QueueType, PushSetType>::type;
     using PushStackType = typename PushType<StackType, PushQueueType>::type;
     using STLList = PushStackType;
 public:
@@ -587,11 +495,11 @@ protected:
     bool set(const std::string &value) override
     {
         T ret = Reader<T, Search<T, NumTypeList>::status>()(value);
-        if (!RangeJudge<T, STL_T, Search<STL_T, STLList>::value, 
+        if (!RangeJudge<T, STL_T, STLList, 
                         Search<T, NumTypeList>::status>()(ret, range))
             return false;
         
-        PushData<STL_T, T, Search<STL_T, STLList>::value>()(data, ret);
+        STLOperation<STL_T, T, Search<STL_T, STLList>::typeIdx>::push(data, ret);
         return true;
     }
 
@@ -602,7 +510,8 @@ protected:
 
     std::string getRangeStr() override
     {
-       return RangeToStr<STL_T, T, Search<STL_T, STLList>::value, Search<T, NumTypeList>::status>()(range);
+       return RangeToStr<STL_T, T, STLList, 
+                         Search<T, NumTypeList>::status>()(range);
     }
 
 private:
