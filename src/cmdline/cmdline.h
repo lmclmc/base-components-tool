@@ -5,6 +5,8 @@
 #include <list>
 #include <memory>
 #include <sstream>
+#include <set>
+#include <vector>
 
 namespace lmc
 {
@@ -32,25 +34,29 @@ using EmptyTypeList = TypeList<>;
 #define PUSH_DOUBLE         PushType<double, PUSH_FLOAT>::type
 using NumTypeList = PUSH_DOUBLE;
 
-template<typename TargetType, typename TypeList>
+template<typename ...Args>
 struct Search;
 
 template<typename TargetType, typename ...Args>
 struct Search<TargetType, TypeList<TargetType, Args...>>
 {
     constexpr static bool status = true;
+    constexpr static int value = 0;
 };
 
 template<typename TargetType, typename HeadType, typename ...Args>
 struct Search<TargetType, TypeList<HeadType, Args...>>
 {
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
+    constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
+    constexpr static int value = tmp == -1 ? -1 : tmp + 1;
 };
 
 template<typename TargetType>
 struct Search<TargetType, TypeList<>>
 {
     constexpr static bool status = false;
+    constexpr static int value = -1;
 };
 
 class CmdLineError : public std::exception {
@@ -240,10 +246,55 @@ struct BreakDown<STL<T, Args...>>
     using type = T;
 };
 
+template<template<typename ...Args> class STL, typename T>
+struct ReBind
+{
+    using type = STL<T>;
+};
+
+template<typename STL_T, typename T, int StlIdx>
+struct PushData;
+
+template<typename STL_T, typename T>
+struct PushData<STL_T, T, 0>
+{
+    void operator()(STL_T &data, T &t)
+    {
+        
+        data.insert(t);
+    }
+};
+
+template<typename STL_T, typename T>
+struct PushData<STL_T, T, 1>
+{
+    void operator()(STL_T &data, T &t)
+    {
+        data.push_back(t);
+    }
+};
+
+template<typename STL_T, typename T>
+struct PushData<STL_T, T, 2>
+{
+    void operator()(STL_T &data, T &t)
+    {
+        data.push_back(t);
+    }
+};
+
 template<class STL_T>
 class ParamWithValue final : public ParamBase
 {
     using T = typename BreakDown<STL_T>::type;
+    using ListType = typename ReBind<std::list, T>::type;
+    using VectorType = typename ReBind<std::vector, T>::type;
+    using SetType = typename ReBind<std::set, T>::type;
+    using EmptyStl = TypeList<>;
+    using PushListType = typename PushType<ListType, EmptyStl>::type;
+    using PushVectorType = typename PushType<VectorType, PushListType>::type;
+    using PushSetType = typename PushType<SetType, PushVectorType>::type;
+    using STLList = PushSetType;
 public:
     ParamWithValue(const std::string &name_,
                 const std::string &shortName_,
@@ -265,8 +316,8 @@ protected:
         T ret = Reader<T, Search<T, NumTypeList>::status>()(value);
         if (!RangeJudge<T, STL_T, Search<T, NumTypeList>::status>()(ret, range))
             return false;
-
-        data.push_back(ret);
+        
+        PushData<STL_T, T, Search<STL_T, STLList>::value>()(data, ret);
         return true;
     }
     bool hasParam() override
