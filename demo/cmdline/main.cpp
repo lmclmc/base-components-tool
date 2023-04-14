@@ -8,6 +8,7 @@
 #include <queue>
 #include <stack>
 #include <deque>
+#include <forward_list>
 
 using namespace lmc;
 
@@ -38,9 +39,11 @@ int main(int argc, char *argv[])
     cmd->add<std::stack<std::string>>("-dsa", "--stackstring", "get stack string", 
                                       {}, std::stack<std::string>({"aaa", "vvv", "bbb", "rrr", "ttt"}));
     cmd->add<std::stack<int>>("-dix", "--stackint", "get stack int", {}, std::stack<int>({44, 99}));
-    // std::stack<int> a({23, 33, 44});
-   
-    // std::stack<int> b = a;
+
+    cmd->add<std::forward_list<std::string>>("-flstring", "--forwardliststring", "get array string", 
+                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", "get array int", {}, {44, 99});
+ 
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
@@ -234,6 +237,26 @@ int main(int argc, char *argv[])
             auto s = intStack.top();
             LOGGER << s;
             intStack.pop();
+        }
+    }
+
+    std::forward_list<std::string> strForwardList;
+    ret = cmd->get("--forwardliststring", strForwardList);
+    if (ret)
+    {
+        for (auto &v : strForwardList)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::forward_list<int> intForwardList;
+    ret = cmd->get("--forwardlistint", intForwardList);
+    if (ret)
+    {
+        for (auto &v : intForwardList)
+        {
+            LOGGER << v;
         }
     }
 }

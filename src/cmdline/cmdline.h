@@ -10,6 +10,7 @@
 #include <deque>
 #include <queue>
 #include <stack>
+#include <forward_list>
 
 namespace lmc
 {
@@ -44,6 +45,7 @@ typedef enum class STLType_ : unsigned char
     SET,   //set                    idx: 3
     QUEUE,  //queue                 idx: 4
     STACK,  //stack                 idx: 5
+    FORWARD_LIST, //forward_list    idx: 6
 } STLType;
 
 template<typename ...Args>
@@ -63,7 +65,8 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value == 5 ? STLType::STACK : value == 4 ? 
+    constexpr static STLType typeIdx = value == 6 ? STLType::FORWARD_LIST : value == 5 ? 
+                     STLType::STACK : value == 4 ? 
                       STLType::QUEUE : value == 3 ? STLType::SET : STLType::VLD;
 };
 
@@ -96,6 +99,11 @@ struct STLOperation;
 template<typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::VLD>
 {
+    static int getSize(STL_T &data)
+    {
+        return data.size();
+    }
+
     static void push(STL_T &data, T &t)
     {
         data.push_back(t);
@@ -146,7 +154,8 @@ struct STLOperation<STL_T, T, STLType::SET> :
 };
 
 template<typename STL_T, typename T>
-struct STLOperation<STL_T, T, STLType::QUEUE>
+struct STLOperation<STL_T, T, STLType::QUEUE> : 
+       public STLOperation<STL_T, T, STLType::VLD>
 {
     static void push(STL_T &data, T &t)
     {
@@ -220,7 +229,7 @@ struct STLOperation<STL_T, T, STLType::STACK> :
     {
         std::string str;
         STL_T tmp = range;
-        int size = tmp.size();
+        int size = 0;//getSize(tmp);
         for (int i = 0; i < size; i++)
         {
             str += tmp.top();
@@ -241,6 +250,26 @@ struct STLOperation<STL_T, T, STLType::STACK> :
     static int getMax(STL_T &range)
     {
         return range.top();
+    }
+};
+
+template<typename STL_T, typename T>
+struct STLOperation<STL_T, T, STLType::FORWARD_LIST> : 
+       public STLOperation<STL_T, T, STLType::VLD>
+{
+    static void push(STL_T &data, T &t)
+    {
+        data.push_front(t);
+    }
+
+    static int getSize(STL_T &data)
+    {
+        return std::distance(std::begin(data), std::end(data));
+    }
+
+    static T getMax(STL_T &range)
+    {
+        return *(++range.begin());
     }
 };
 
@@ -297,7 +326,7 @@ struct RangeJudge
 {
     bool operator()(T &value, STL_T &range)
     {
-        if (range.size() > 0)
+        if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range) > 0)
         {
             if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::traverse(range, value))
                 return true;
@@ -318,7 +347,7 @@ struct RangeJudge<T, STL_T, STLList, true>
 {
     bool operator()(T &value, STL_T &range)
     {
-        if (range.size() > 0)
+        if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range) > 0)
         {
             T min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
             T max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
@@ -341,7 +370,7 @@ struct RangeToStr
 {
     std::string operator()(STL_T &range)
     {
-        if (!range.size())
+        if (!STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range))
             return "";
 
         std::string str("[");
@@ -356,7 +385,7 @@ struct RangeToStr<STL_T, T, STLList, true>
 {
     std::string operator()(STL_T &range)
     {
-        if (!range.size())
+        if (!STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range))
             return "";
 
         int min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
@@ -432,6 +461,7 @@ class ParamWithValue final : public ParamBase
     using SetType = typename ReBind<std::set, T>::type;
     using QueueType = typename ReBind<std::queue, T>::type;
     using StackType = typename ReBind<std::stack, T>::type;
+    using ForwardListType = typename ReBind<std::forward_list, T>::type;
     using EmptyStl = TypeList<>;
     using PushListType = typename PushType<ListType, EmptyStl>::type;
     using PushVectorType = typename PushType<VectorType, PushListType>::type;
@@ -439,7 +469,8 @@ class ParamWithValue final : public ParamBase
     using PushSetType = typename PushType<SetType, PushDequeType>::type;
     using PushQueueType = typename PushType<QueueType, PushSetType>::type;
     using PushStackType = typename PushType<StackType, PushQueueType>::type;
-    using STLList = PushStackType;
+    using PushForwardListType = typename PushType<ForwardListType, PushStackType>::type;
+    using STLList = PushForwardListType;
 public:
     ParamWithValue(const std::string &name_,
                 const std::string &shortName_,
