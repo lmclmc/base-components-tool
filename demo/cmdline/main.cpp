@@ -9,6 +9,7 @@
 #include <stack>
 #include <deque>
 #include <forward_list>
+#include <unordered_set>
 
 using namespace lmc;
 
@@ -40,12 +41,19 @@ int main(int argc, char *argv[])
                                       {}, std::stack<std::string>({"aaa", "vvv", "bbb", "rrr", "ttt"}));
     cmd->add<std::stack<int>>("-dix", "--stackint", "get stack int", {}, std::stack<int>({44, 99}));
 
-    cmd->add<std::forward_list<std::string>>("-flstring", "--forwardliststring", "get array string", 
+    cmd->add<std::forward_list<std::string>>("-flstring", "--forwardliststring", "get forward_list string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", "get array int", {}, {44, 99});
-    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", "get array string", 
+    cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", "get forward_list int", {}, {44, 99});
+    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", "get multiset string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get array int", {}, {44, 99});
+    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get multiset int", {}, {44, 99});
+    cmd->add<std::unordered_set<std::string>>("-unstr", "--unorderedsetstring", "get unordered_set string", 
+                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::unordered_set<int>>("-unint", "--unorderdsetint", "get unordered_set int", {}, {44, 99});
+    cmd->add<std::unordered_multiset<std::string>>("-unmstr", "--unorderedmsetstring", "get unordered_multiset string", 
+                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", "get unordered_multiset int", {}, {44, 99});
+ 
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
@@ -277,6 +285,46 @@ int main(int argc, char *argv[])
     if (ret)
     {
         for (auto &v : intMultiset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::unordered_set<std::string> strUnorderedset;
+    ret = cmd->get("--unorderedsetstring", strUnorderedset);
+    if (ret)
+    {
+        for (auto &v : strUnorderedset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::unordered_set<int> intUnorderedset;
+    ret = cmd->get("--unorderdsetint", intUnorderedset);
+    if (ret)
+    {
+        for (auto &v : intUnorderedset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::unordered_multiset<std::string> strUnorderedmultiset;
+    ret = cmd->get("--unorderedmsetstring", strUnorderedmultiset);
+    if (ret)
+    {
+        for (auto &v : strUnorderedmultiset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::unordered_multiset<int> intUnorderedmultiset;
+    ret = cmd->get("--unorderdmsetint", intUnorderedmultiset);
+    if (ret)
+    {
+        for (auto &v : intUnorderedmultiset)
         {
             LOGGER << v;
         }

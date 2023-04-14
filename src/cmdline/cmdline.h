@@ -11,6 +11,7 @@
 #include <queue>
 #include <stack>
 #include <forward_list>
+#include <unordered_set>
 
 namespace lmc
 {
@@ -43,9 +44,10 @@ typedef enum class STLType_ : unsigned char
     NONE, //none                    idx:-1
     VLD, //vector list deque        idx:0 1 2
     SET,   //set                    idx: 3
-    QUEUE,  //queue                 idx: 4
-    STACK,  //stack                 idx: 5
-    FORWARD_LIST, //forward_list    idx: 6
+    UNORDERED_SET, //unordered_set  idx: 5
+    QUEUE,  //queue                 idx: 6
+    STACK,  //stack                 idx: 7
+    FORWARD_LIST, //forward_list    idx: 8
 } STLType;
 
 template<typename ...Args>
@@ -65,9 +67,9 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value == 7 ? STLType::FORWARD_LIST : value == 6 ? 
-                     STLType::STACK : value == 5 ? 
-                      STLType::QUEUE : value == 4 ? STLType::SET : value == 3 ? STLType::SET : STLType::VLD;
+    constexpr static STLType typeIdx = value == 9 ? STLType::FORWARD_LIST : value == 8 ? 
+                     STLType::STACK : value == 7 ? 
+                      STLType::QUEUE : value == 6 ? STLType::UNORDERED_SET : value == 5 ? STLType::UNORDERED_SET : value == 4 ? STLType::SET : value == 3 ? STLType::SET : STLType::VLD;
 };
 
 template<typename TargetType>
@@ -273,6 +275,21 @@ struct STLOperation<STL_T, T, STLType::FORWARD_LIST> :
     }
 };
 
+template<typename STL_T, typename T>
+struct STLOperation<STL_T, T, STLType::UNORDERED_SET> :
+       public STLOperation<STL_T, T, STLType::SET>
+{
+    static T getMax(STL_T &range)
+    {
+        return *(range.begin());
+    }
+
+    static T getMin(STL_T &range)
+    {
+        return *(++range.begin());
+    }
+};
+
 template<class Target, bool IsNum>
 struct Reader
 {
@@ -460,6 +477,8 @@ class ParamWithValue final : public ParamBase
     using DequeType = typename ReBind<std::deque, T>::type;
     using SetType = typename ReBind<std::set, T>::type;
     using MultiSetType = typename ReBind<std::multiset, T>::type;
+    using UnorderedSetType = typename ReBind<std::unordered_set, T>::type;
+    using UnorderedMultiSetType = typename ReBind<std::unordered_multiset, T>::type;
     using QueueType = typename ReBind<std::queue, T>::type;
     using StackType = typename ReBind<std::stack, T>::type;
     using ForwardListType = typename ReBind<std::forward_list, T>::type;
@@ -469,7 +488,9 @@ class ParamWithValue final : public ParamBase
     using PushDequeType = typename PushType<DequeType, PushVectorType>::type;
     using PushSetType = typename PushType<SetType, PushDequeType>::type;
     using PushMultiSetType = typename PushType<MultiSetType, PushSetType>::type;
-    using PushQueueType = typename PushType<QueueType, PushMultiSetType>::type;
+    using PushUnorderedSetType = typename PushType<UnorderedSetType, PushMultiSetType>::type;
+    using PushUnorderedMultiSetType = typename PushType<UnorderedMultiSetType, PushUnorderedSetType>::type;
+    using PushQueueType = typename PushType<QueueType, PushUnorderedMultiSetType>::type;
     using PushStackType = typename PushType<StackType, PushQueueType>::type;
     using PushForwardListType = typename PushType<ForwardListType, PushStackType>::type;
     using STLList = PushForwardListType;
