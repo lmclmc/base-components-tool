@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::set<std::string>>("-ss", "--sstring", "get set string", 
                                     {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::set<int>>("-si", "--sint", "get set int", {}, {44, 99});
+    cmd->add<std::set<int>>("-si", "--sint", "get set int", {"-ss", "-us"}, {44, 99});
     cmd->add<std::deque<std::string>>("-ds", "--dstring", "get deque string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::deque<int>>("-di", "--dint", "get deque int", {}, {44, 99});

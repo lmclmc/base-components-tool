@@ -67,6 +67,7 @@ void CmdLine::paramCheck()
         if (l->getEnable())
         {
             enableSet.emplace(l->getName());
+            enableSet.emplace(l->getShortName());
         }
     }
 
