@@ -302,24 +302,6 @@ struct Reader
     }
 };
 
-template<class Target>
-struct Reader<Target, true>
-{
-    Target operator()(const std::string &str)
-    {
-        Target ret;
-        std::stringstream ss;
-        if (!(ss << str && ss >> ret && ss.eof()))
-        {
-            CmdLineError err;
-            err << "param error \"" << str << "\"";
-            throw err;
-        }
-       
-        return ret;
-    }
-};
-
 class CmdLineError : public std::exception {
 public:
     CmdLineError(const std::string &msg = ""): msg(msg){}
@@ -339,6 +321,24 @@ public:
 
 private:
     std::string msg;
+};
+
+template<class Target>
+struct Reader<Target, true>
+{
+    Target operator()(const std::string &str)
+    {
+        Target ret;
+        std::stringstream ss;
+        if (!(ss << str && ss >> ret && ss.eof()))
+        {
+            CmdLineError err;
+            err << "param error \"" << str << "\"";
+            throw err;
+        }
+       
+        return ret;
+    }
 };
 
 template<typename T, typename STL_T, typename STLList, bool IsNum>
