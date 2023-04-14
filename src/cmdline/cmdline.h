@@ -570,17 +570,34 @@ public:
     CmdLine() = default;
     ~CmdLine() = default;
     
+    /**
+     * @brief add 设置命令行选项以及附带参数
+     * @param shortName 选项短名称
+     * @param name 选项长名称
+     * @param describtion 选项描述
+     * @param dep 选项依赖
+     * @param range 参数范围
+     * @return 返回无
+     */
     template<class STL_T>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, 
              std::list<std::string> dep = std::list<std::string>(), 
-             STL_T r = STL_T())
+             STL_T range = STL_T())
     {
         paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
-                                                            shortName,
-                                                        describtion, dep, r));
+                                                 shortName,
+                                                 describtion, dep, range));
     }
 
+    /**
+     * @brief add 重载函数 设置命令行选项
+     * @param shortName 选项短名称
+     * @param name 选项长名称
+     * @param describtion 选项描述
+     * @param dep 选项依赖
+     * @return 返回无
+     */
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion,
              std::list<std::string> dep = std::list<std::string>())
@@ -590,6 +607,12 @@ public:
                                                             describtion, dep));
     }
 
+    /**
+     * @brief get 获取选项信息，以及参数信息
+     * @param name 选项名称
+     * @param t  参数
+     * @return 返回 选项使能 true 否则 false
+     */
     template<class STL_T>
     bool get(const std::string &name, STL_T &t)
     {
@@ -606,6 +629,11 @@ public:
         return false;
     }
 
+    /**
+     * @brief get 重载函数 获取选项信息
+     * @param name 选项名称
+     * @return 返回 选项使能 true 否则 false
+     */
     bool get(const std::string &name)
     {
         for (auto &l : paramTable)
