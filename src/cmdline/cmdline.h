@@ -67,9 +67,12 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value == 9 ? STLType::FORWARD_LIST : value == 8 ? 
-                     STLType::STACK : value == 7 ? 
-                      STLType::QUEUE : value == 6 ? STLType::UNORDERED_SET : value == 5 ? STLType::UNORDERED_SET : value == 4 ? STLType::SET : value == 3 ? STLType::SET : STLType::VLD;
+    constexpr static STLType typeIdx = value < 3 ? STLType::VLD : 
+                                       value < 5 ? STLType::SET : 
+                                       value < 7 ? STLType::UNORDERED_SET : 
+                                       value == 7 ? STLType::QUEUE : 
+                                       value == 8 ? STLType::STACK : 
+                                       STLType::FORWARD_LIST;
 };
 
 template<typename TargetType>
@@ -299,6 +302,24 @@ struct Reader
     }
 };
 
+template<class Target>
+struct Reader<Target, true>
+{
+    Target operator()(const std::string &str)
+    {
+        Target ret;
+        std::stringstream ss;
+        if (!(ss << str && ss >> ret && ss.eof()))
+        {
+            CmdLineError err;
+            err << "param error \"" << str << "\"";
+            throw err;
+        }
+       
+        return ret;
+    }
+};
+
 class CmdLineError : public std::exception {
 public:
     CmdLineError(const std::string &msg = ""): msg(msg){}
@@ -320,32 +341,15 @@ private:
     std::string msg;
 };
 
-template<class Target>
-struct Reader<Target, true>
-{
-    Target operator()(const std::string &str)
-    {
-        Target ret;
-        std::stringstream ss;
-        if (!(ss << str && ss >> ret && ss.eof()))
-        {
-            CmdLineError err;
-            err << "param error \"" << str << "\"";
-            throw err;
-        }
-       
-        return ret;
-    }
-};
-
 template<typename T, typename STL_T, typename STLList, bool IsNum>
 struct RangeJudge
 {
     bool operator()(T &value, STL_T &range)
     {
-        if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range) > 0)
+        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
+        if (STLOperation<STL_T, T, typeIdx>::getSize(range) > 0)
         {
-            if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::traverse(range, value))
+            if (STLOperation<STL_T, T, typeIdx>::traverse(range, value))
                 return true;
 
             CmdLineError err;
@@ -364,10 +368,11 @@ struct RangeJudge<T, STL_T, STLList, true>
 {
     bool operator()(T &value, STL_T &range)
     {
-        if (STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range) > 0)
+        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
+        if (STLOperation<STL_T, T, typeIdx>::getSize(range) > 0)
         {
-            T min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
-            T max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
+            T min = STLOperation<STL_T, T, typeIdx>::getMin(range);
+            T max = STLOperation<STL_T, T, typeIdx>::getMax(range);
             if (min > value || max < value)
             {
                 CmdLineError err;
@@ -387,11 +392,12 @@ struct RangeToStr
 {
     std::string operator()(STL_T &range)
     {
-        if (!STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range))
+        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
+        if (!STLOperation<STL_T, T, typeIdx>::getSize(range))
             return "";
 
         std::string str("[");
-        str += STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getTraverseStr(range);
+        str += STLOperation<STL_T, T, typeIdx>::getTraverseStr(range);
         str += "]";
         return str;
     }
@@ -402,11 +408,12 @@ struct RangeToStr<STL_T, T, STLList, true>
 {
     std::string operator()(STL_T &range)
     {
-        if (!STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getSize(range))
+        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
+        if (!STLOperation<STL_T, T, typeIdx>::getSize(range))
             return "";
 
-        int min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
-        int max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
+        int min = STLOperation<STL_T, T, typeIdx>::getMin(range);
+        int max = STLOperation<STL_T, T, typeIdx>::getMax(range);
         return std::string("[") + std::to_string(min) + " , " 
                                 + std::to_string(max) + "]";
 
@@ -471,29 +478,51 @@ protected:
 template<class STL_T>
 class ParamWithValue final : public ParamBase
 {
-    using T = typename BreakDown<STL_T>::type;
-    using ListType = typename ReBind<std::list, T>::type;
-    using VectorType = typename ReBind<std::vector, T>::type;
-    using DequeType = typename ReBind<std::deque, T>::type;
-    using SetType = typename ReBind<std::set, T>::type;
-    using MultiSetType = typename ReBind<std::multiset, T>::type;
-    using UnorderedSetType = typename ReBind<std::unordered_set, T>::type;
-    using UnorderedMultiSetType = typename ReBind<std::unordered_multiset, T>::type;
-    using QueueType = typename ReBind<std::queue, T>::type;
-    using StackType = typename ReBind<std::stack, T>::type;
-    using ForwardListType = typename ReBind<std::forward_list, T>::type;
-    using EmptyStl = TypeList<>;
-    using PushListType = typename PushType<ListType, EmptyStl>::type;
-    using PushVectorType = typename PushType<VectorType, PushListType>::type;
-    using PushDequeType = typename PushType<DequeType, PushVectorType>::type;
-    using PushSetType = typename PushType<SetType, PushDequeType>::type;
-    using PushMultiSetType = typename PushType<MultiSetType, PushSetType>::type;
-    using PushUnorderedSetType = typename PushType<UnorderedSetType, PushMultiSetType>::type;
-    using PushUnorderedMultiSetType = typename PushType<UnorderedMultiSetType, PushUnorderedSetType>::type;
-    using PushQueueType = typename PushType<QueueType, PushUnorderedMultiSetType>::type;
-    using PushStackType = typename PushType<StackType, PushQueueType>::type;
-    using PushForwardListType = typename PushType<ForwardListType, PushStackType>::type;
-    using STLList = PushForwardListType;
+    using T                         = typename BreakDown<STL_T>::type;
+    using ListType                  = typename ReBind<std::list, 
+                                               T>::type;
+    using VectorType                = typename ReBind<std::vector, 
+                                               T>::type;
+    using DequeType                 = typename ReBind<std::deque, 
+                                               T>::type;
+    using SetType                   = typename ReBind<std::set, T
+                                               >::type;
+    using MultiSetType              = typename ReBind<std::multiset, 
+                                               T>::type;
+    using UnorderedSetType          = typename ReBind<std::unordered_set, 
+                                               T>::type;
+    using UnorderedMultiSetType     = typename ReBind<std::unordered_multiset, 
+                                               T>::type;
+    using QueueType                 = typename ReBind<std::queue, 
+                                               T>::type;
+    using StackType                 = typename ReBind<std::stack, 
+                                               T>::type;
+    using ForwardListType           = typename ReBind<std::forward_list,
+                                               T>::type;
+    using EmptyStl                  = TypeList<>;
+    using PushListType              = typename PushType<ListType, 
+                                               EmptyStl>::type;
+    using PushVectorType            = typename PushType<VectorType, 
+                                               PushListType>::type;
+    using PushDequeType             = typename PushType<DequeType, 
+                                               PushVectorType>::type;
+    using PushSetType               = typename PushType<SetType, 
+                                               PushDequeType>::type;
+    using PushMultiSetType          = typename PushType<MultiSetType, 
+                                               PushSetType>::type;
+    using PushUnorderedSetType      = typename PushType<UnorderedSetType, 
+                                               PushMultiSetType>::type;
+    using PushUnorderedMultiSetType = typename PushType<UnorderedMultiSetType, 
+                                               PushUnorderedSetType>::type;
+    using PushQueueType             = typename PushType<QueueType, 
+                                               PushUnorderedMultiSetType>::type;
+    using PushStackType             = typename PushType<StackType, 
+                                               PushQueueType>::type;
+    using PushForwardListType       = typename PushType<ForwardListType, 
+                                               PushStackType>::type;
+    using STLList                   = PushForwardListType;
+    constexpr static bool isNum     = Search<T, NumTypeList>::status;
+    constexpr static STLType typeIdx = Search<STL_T, STLList>::typeIdx;
 public:
     ParamWithValue(const std::string &name_,
                 const std::string &shortName_,
@@ -512,12 +541,11 @@ public:
 protected:
     bool set(const std::string &value) override
     {
-        T ret = Reader<T, Search<T, NumTypeList>::status>()(value);
-        if (!RangeJudge<T, STL_T, STLList, 
-                        Search<T, NumTypeList>::status>()(ret, range))
+        T ret = Reader<T, isNum>()(value);
+        if (!RangeJudge<T, STL_T, STLList, isNum>()(ret, range))
             return false;
         
-        STLOperation<STL_T, T, Search<STL_T, STLList>::typeIdx>::push(data, ret);
+        STLOperation<STL_T, T, typeIdx>::push(data, ret);
         return true;
     }
 
@@ -528,8 +556,7 @@ protected:
 
     std::string getRangeStr() override
     {
-       return RangeToStr<STL_T, T, STLList, 
-                         Search<T, NumTypeList>::status>()(range);
+       return RangeToStr<STL_T, T, STLList, isNum>()(range);
     }
 
 private:
@@ -542,11 +569,12 @@ class CmdLine
 public:
     CmdLine() = default;
     ~CmdLine() = default;
-
+    
     template<class STL_T>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, 
-             std::list<std::string> dep = std::list<std::string>(), STL_T r = STL_T())
+             std::list<std::string> dep = std::list<std::string>(), 
+             STL_T r = STL_T())
     {
         paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
                                                             shortName,

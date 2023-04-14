@@ -22,12 +22,14 @@ void CmdLine::parse(int argc, char *argv[])
             bSearch = false;
             if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1))
             {
-                if (!strncmp(argv[i], "--help", 6) || !strncmp(argv[i], "-h", 2))
+                if (!strncmp(argv[i], "--help", 6) || 
+                    !strncmp(argv[i], "-h", 2))
                     showHelp();
 
                 for (auto &l : paramTable)
                 {
-                    if (l->getName() == argv[i] || l->getShortName() == argv[i])
+                    if (l->getName() == argv[i] || 
+                        l->getShortName() == argv[i])
                     {
                         bSearch = true;
                         l->setEnable(true);

@@ -30,29 +30,50 @@ int main(int argc, char *argv[])
                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::set<std::string>>("-ss", "--sstring", "get set string", 
                                     {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::set<int>>("-si", "--sint", "get set int", {"-ss", "-us"}, {44, 99});
+    cmd->add<std::set<int>>("-si", "--sint", "get set int", 
+                           {"-ss", "-us"}, {44, 99});
     cmd->add<std::deque<std::string>>("-ds", "--dstring", "get deque string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::deque<int>>("-di", "--dint", "get deque int", {}, {44, 99});
-    cmd->add<std::queue<std::string>>("-dsss", "--queuestring", "get queue string", 
-                                      {}, std::queue<std::string>({"aaa", "vvv", "bbb", "rrr", "ttt"}));
-    cmd->add<std::queue<int>>("-diss", "--queueint", "get queue int", {}, std::queue<int>({44, 99}));
-    cmd->add<std::stack<std::string>>("-dsa", "--stackstring", "get stack string", 
-                                      {}, std::stack<std::string>({"aaa", "vvv", "bbb", "rrr", "ttt"}));
-    cmd->add<std::stack<int>>("-dix", "--stackint", "get stack int", {}, std::stack<int>({44, 99}));
-
-    cmd->add<std::forward_list<std::string>>("-flstring", "--forwardliststring", "get forward_list string", 
-                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", "get forward_list int", {}, {44, 99});
-    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", "get multiset string", 
-                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get multiset int", {}, {44, 99});
-    cmd->add<std::unordered_set<std::string>>("-unstr", "--unorderedsetstring", "get unordered_set string", 
-                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::unordered_set<int>>("-unint", "--unorderdsetint", "get unordered_set int", {}, {44, 99});
-    cmd->add<std::unordered_multiset<std::string>>("-unmstr", "--unorderedmsetstring", "get unordered_multiset string", 
-                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", "get unordered_multiset int", {}, {44, 99});
+    cmd->add<std::queue<std::string>>("-dsss", "--queuestring", 
+                                      "get queue string", 
+                                      {}, std::queue<std::string>({"aaa", 
+                                      "vvv", "bbb", "rrr", "ttt"}));
+    cmd->add<std::queue<int>>("-diss", "--queueint", "get queue int", 
+                              {}, std::queue<int>({44, 99}));
+    cmd->add<std::stack<std::string>>("-dsa", "--stackstring", 
+                                      "get stack string", 
+                                      {}, std::stack<std::string>({"aaa", 
+                                      "vvv", "bbb", "rrr", "ttt"}));
+    cmd->add<std::stack<int>>("-dix", "--stackint", "get stack int", 
+                              {}, std::stack<int>({44, 99}));
+    cmd->add<std::forward_list<std::string>>("-flstring", 
+                                             "--forwardliststring", 
+                                             "get forward_list string", 
+                                             {}, {"aaa", "vvv", "bbb", 
+                                             "rrr", "ttt"});
+    cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", 
+                                     "get forward_list int", {}, {44, 99});
+    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", 
+                                         "get multiset string", 
+                                         {}, {"aaa", "vvv", "bbb", 
+                                         "rrr", "ttt"});
+    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get multiset int", 
+                                 {}, {44, 99});
+    cmd->add<std::unordered_set<std::string>>("-unstr", "--unorderedsetstring", 
+                                              "get unordered_set string", 
+                                              {}, {"aaa", "vvv", "bbb", 
+                                              "rrr", "ttt"});
+    cmd->add<std::unordered_set<int>>("-unint", "--unorderdsetint", 
+                                      "get unordered_set int", {}, {44, 99});
+    cmd->add<std::unordered_multiset<std::string>>("-unmstr", 
+                                                   "--unorderedmsetstring", 
+                                                   "get unordered_multiset string", 
+                                                   {}, 
+                                                   {"aaa", "vvv", "bbb", "rrr"});
+    cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
+                                           "get unordered_multiset int", 
+                                           {}, {44, 99});
  
     cmd->parse(argc, argv);
 
