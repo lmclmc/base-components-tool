@@ -608,7 +608,7 @@ public:
     }
 
     /**
-     * @brief get 获取选项信息，以及参数信息
+     * @brief get 获取选项信息，以及参数信息,注意参数只能获取一次
      * @param name 选项名称
      * @param t  参数
      * @return 返回 选项使能 true 否则 false
@@ -622,7 +622,7 @@ public:
                  l->getEnable())
             {
                 auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T>>(l);
-                t = p->get();
+                t = std::move(p->get());
                 return true;
             }
         }
