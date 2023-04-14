@@ -65,9 +65,9 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value == 6 ? STLType::FORWARD_LIST : value == 5 ? 
-                     STLType::STACK : value == 4 ? 
-                      STLType::QUEUE : value == 3 ? STLType::SET : STLType::VLD;
+    constexpr static STLType typeIdx = value == 7 ? STLType::FORWARD_LIST : value == 6 ? 
+                     STLType::STACK : value == 5 ? 
+                      STLType::QUEUE : value == 4 ? STLType::SET : value == 3 ? STLType::SET : STLType::VLD;
 };
 
 template<typename TargetType>
@@ -459,6 +459,7 @@ class ParamWithValue final : public ParamBase
     using VectorType = typename ReBind<std::vector, T>::type;
     using DequeType = typename ReBind<std::deque, T>::type;
     using SetType = typename ReBind<std::set, T>::type;
+    using MultiSetType = typename ReBind<std::multiset, T>::type;
     using QueueType = typename ReBind<std::queue, T>::type;
     using StackType = typename ReBind<std::stack, T>::type;
     using ForwardListType = typename ReBind<std::forward_list, T>::type;
@@ -467,7 +468,8 @@ class ParamWithValue final : public ParamBase
     using PushVectorType = typename PushType<VectorType, PushListType>::type;
     using PushDequeType = typename PushType<DequeType, PushVectorType>::type;
     using PushSetType = typename PushType<SetType, PushDequeType>::type;
-    using PushQueueType = typename PushType<QueueType, PushSetType>::type;
+    using PushMultiSetType = typename PushType<MultiSetType, PushSetType>::type;
+    using PushQueueType = typename PushType<QueueType, PushMultiSetType>::type;
     using PushStackType = typename PushType<StackType, PushQueueType>::type;
     using PushForwardListType = typename PushType<ForwardListType, PushStackType>::type;
     using STLList = PushForwardListType;

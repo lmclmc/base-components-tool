@@ -43,7 +43,9 @@ int main(int argc, char *argv[])
     cmd->add<std::forward_list<std::string>>("-flstring", "--forwardliststring", "get array string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", "get array int", {}, {44, 99});
- 
+    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", "get array string", 
+                                      {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get array int", {}, {44, 99});
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
@@ -255,6 +257,26 @@ int main(int argc, char *argv[])
     if (ret)
     {
         for (auto &v : intForwardList)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::multiset<std::string> strMultiset;
+    ret = cmd->get("--multisetstring", strMultiset);
+    if (ret)
+    {
+        for (auto &v : strMultiset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::multiset<int> intMultiset;
+    ret = cmd->get("--multisetint", intMultiset);
+    if (ret)
+    {
+        for (auto &v : intMultiset)
         {
             LOGGER << v;
         }
