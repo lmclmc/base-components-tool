@@ -124,56 +124,24 @@ struct STLOperation<STL_T, T, STLType::VLD>
         return str;
     }
 
-    static int getMin(STL_T &range)
-    {
-        return range.front();
-    }
-
-    static int getMax(STL_T &range)
-    {
-        return range.back();
-    }
-};
-
-template<typename STL_T, typename T>
-struct STLOperation<STL_T, T, STLType::SET>
-{
-    static void push(STL_T &data, T &t)
-    {
-        data.insert(t);
-    }
-
-    static bool traverse(const STL_T &range, const T &value)
-    {
-        for (auto &r : range)
-        {
-            if (value == r)
-                return true;
-        }
-
-        return false;
-    }
-
-    static std::string getTraverseStr(const STL_T &range)
-    {
-        std::string str;
-        for (auto &r : range)
-        {
-            str += r;
-            str += ' ';
-        }
-
-        return str;
-    }
-
-    static int getMin(STL_T &range)
+    static T getMin(STL_T &range)
     {
         return *range.begin();
     }
 
-    static int getMax(STL_T &range)
+    static T getMax(STL_T &range)
     {
         return *(--range.end());
+    }
+};
+
+template<typename STL_T, typename T>
+struct STLOperation<STL_T, T, STLType::SET> : 
+       public STLOperation<STL_T, T, STLType::VLD>
+{
+    static void push(STL_T &data, T &t)
+    {
+        data.insert(t);
     }
 };
 
@@ -216,12 +184,12 @@ struct STLOperation<STL_T, T, STLType::QUEUE>
         return str;
     }
 
-    static int getMin(STL_T &range)
+    static T getMin(STL_T &range)
     {
         return range.front();
     }
 
-    static int getMax(STL_T &range)
+    static T getMax(STL_T &range)
     {
         STL_T tmp = range;
         tmp.pop();
@@ -230,13 +198,9 @@ struct STLOperation<STL_T, T, STLType::QUEUE>
 };
 
 template<typename STL_T, typename T>
-struct STLOperation<STL_T, T, STLType::STACK>
+struct STLOperation<STL_T, T, STLType::STACK> :
+       public STLOperation<STL_T, T, STLType::QUEUE>
 {
-    static void push(STL_T &data, T &t)
-    {
-        data.push(t);
-    }
-
     static bool traverse(STL_T &range, T &value)
     {
         STL_T tmp = range;
@@ -356,8 +320,8 @@ struct RangeJudge<T, STL_T, STLList, true>
     {
         if (range.size() > 0)
         {
-            int min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
-            int max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
+            T min = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMin(range);
+            T max = STLOperation<STL_T, T,  Search<STL_T, STLList>::typeIdx>::getMax(range);
             if (min > value || max < value)
             {
                 CmdLineError err;
