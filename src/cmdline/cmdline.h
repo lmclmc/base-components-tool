@@ -95,10 +95,32 @@ struct BreakDown<STL<T, Args...>>
 template<typename ...Args>
 struct ReBind;
 
-template<template<typename ...Args> class STL, typename T, typename ReplaceType>
-struct ReBind<STL<T>, ReplaceType>
+template<template<typename ...Args> class STL, typename T, 
+         typename ...Args, typename ReplaceType>
+struct ReBind<STL<T, Args...>, ReplaceType>
 {
     using type = STL<ReplaceType>;
+};
+
+class CmdLineError : public std::exception {
+public:
+    CmdLineError(const std::string &msg = ""): msg(msg){}
+    ~CmdLineError() throw() {}
+    const char *what() const throw() { return msg.c_str(); }
+    CmdLineError &operator << (std::string str)
+    {
+        msg += str;
+        return *this;
+    }
+
+    CmdLineError &operator << (int num)
+    {
+        msg += std::to_string(num);
+        return *this;
+    }
+
+private:
+    std::string msg;
 };
 
 template<typename STL_T, typename T, STLType t>
@@ -126,6 +148,21 @@ struct STLOperation<STL_T, T, STLType::VLD>
         }
 
         return false;
+    }
+
+    static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
+    {
+        for (auto &d : deps)
+        {
+            if (set.find(d) == set.end())
+            {
+                CmdLineError err;
+                err << d;
+                throw err;
+            }
+        }
+
+        return;
     }
 
     static std::string getTraverseStr(const STL_T &range)
@@ -174,7 +211,6 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
     {
         STL_T tmp = range;
         int size = tmp.size();
-
         for (int i = 0; i < size; i++)
         {
             if (value == tmp.front())
@@ -184,6 +220,25 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
         }
 
         return false;
+    }
+
+    static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
+    {
+        STL_T tmp = deps;
+        int size = tmp.size();
+        for (int i = 0; i < size; i++)
+        {
+            if (set.find(tmp.front()) == set.end())
+            {
+                CmdLineError err;
+                err << tmp.front();
+                throw err;
+            }
+
+            tmp.pop();
+        }
+
+        return;
     }
 
     static std::string getTraverseStr(STL_T &range)
@@ -233,11 +288,30 @@ struct STLOperation<STL_T, T, STLType::STACK> :
         return false;
     }
 
+    static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
+    {
+        STL_T tmp = deps;
+        int size = tmp.size();
+        for (int i = 0; i < size; i++)
+        {
+            if (set.find(tmp.top()) == set.end())
+            {
+                CmdLineError err;
+                err << tmp.top();
+                throw err;
+            }
+
+            tmp.pop();
+        }
+
+        return;
+    }
+
     static std::string getTraverseStr(STL_T &range)
     {
         std::string str;
         STL_T tmp = range;
-        int size = 0;//getSize(tmp);
+        int size = tmp.size();
         for (int i = 0; i < size; i++)
         {
             str += tmp.top();
@@ -303,27 +377,6 @@ struct Reader
     {
         return str;
     }
-};
-
-class CmdLineError : public std::exception {
-public:
-    CmdLineError(const std::string &msg = ""): msg(msg){}
-    ~CmdLineError() throw() {}
-    const char *what() const throw() { return msg.c_str(); }
-    CmdLineError &operator << (std::string str)
-    {
-        msg += str;
-        return *this;
-    }
-
-    CmdLineError &operator << (int num)
-    {
-        msg += std::to_string(num);
-        return *this;
-    }
-
-private:
-    std::string msg;
 };
 
 template<class Target>
@@ -429,11 +482,12 @@ public:
     ParamBase(const std::string &name_,
               const std::string &shortName_,
               const std::string &describtion_,
-              const std::list<std::string> &dep);
+              const std::list<std::string> &dep = std::list<std::string>());
     virtual ~ParamBase() = default;
 
     virtual bool set(const std::string &) = 0;
     virtual bool hasParam() = 0;
+    virtual void searchDeps(std::set<std::string> &) = 0;
     virtual std::string getRangeStr() = 0;
 
     void setEnable(bool);
@@ -476,9 +530,14 @@ protected:
     {
         return false;
     }
+
+    void searchDeps(std::set<std::string> &set) override
+    {
+
+    }
 };
 
-template<class STL_T>
+template<class STL_T, class STL_S = typename ReBind<STL_T, std::string>::type>
 class ParamWithValue final : public ParamBase
 {
     using T                         = typename BreakDown<STL_T>::type;
@@ -520,10 +579,11 @@ public:
     ParamWithValue(const std::string &name_,
                 const std::string &shortName_,
                 const std::string &describtion_,
-                const std::list<std::string> &dep_,
+                const STL_S &dep_,
                 const STL_T &range_) :
                 range(range_),
-                ParamBase(name_, shortName_, describtion_, dep_){}
+                deps(dep_),
+                ParamBase(name_, shortName_, describtion_){}
     ~ParamWithValue() = default;
 
     STL_T &get()
@@ -552,9 +612,15 @@ protected:
        return RangeToStr<STL_T, T, STLList, isNum>()(range);
     }
 
+    void searchDeps(std::set<std::string> &set) override
+    {
+        return STLOperation<STL_S, T, typeIdx>::searchDeps(deps, set);
+    }
+
 private:
     STL_T data;
     STL_T range;
+    STL_S deps;
 };
 
 class CmdLine
@@ -568,19 +634,19 @@ public:
      * @param shortName 选项短名称
      * @param name 选项长名称
      * @param describtion 选项描述
-     * @param dep 选项依赖
-     * @param range 参数范围
+     * @param dep 可选参数,选项依赖
+     * @param range 可选参数,参数范围
      * @return 返回无
      */
-    template<class STL_T>
+    template<class STL_T, 
+             class STL_S = typename ReBind<STL_T, std::string>::type>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, 
-             std::list<std::string> dep = std::list<std::string>(), 
+             const std::string &describtion, STL_S dep = STL_S(), 
              STL_T range = STL_T())
     {
         paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
-                                                 shortName,
-                                                 describtion, dep, range));
+                                                 shortName, describtion, dep, 
+                                                 range));
     }
 
     /**

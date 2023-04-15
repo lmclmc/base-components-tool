@@ -19,7 +19,8 @@ int main(int argc, char *argv[])
     cmd->add<std::vector<short>>("-s", "--short", "get short", {}, {33, 55});
     cmd->add<std::vector<unsigned short>>("-us", "--us", "get unsigned short");
     cmd->add<std::vector<int>>("-i", "--int", "get int");
-    cmd->add<std::vector<unsigned int>>("-ui", "--ui", "get unsigned int");
+    cmd->add<std::vector<unsigned int>>("-ui", "--ui", "get unsigned int",
+                                        {"-s", "-us", "-i"});
     cmd->add<std::vector<float>>("-f", "--float", "get float", {}, {23, 100});
     cmd->add<std::vector<double>>("-d", "--double", "get double");
     cmd->add<std::vector<long>>("-l", "--long", "get long");
@@ -74,13 +75,20 @@ int main(int argc, char *argv[])
     cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
                                            "get unordered_multiset int", 
                                            {}, {44, 99});
+    cmd->add("-z", "--single", "get single", {"-s", "-us", "-i"});
  
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
 
+    bool ret = cmd->get("--single");
+    if (ret)
+    {
+        LOGGER << "--single enable";
+    }
+
     std::vector<short> sVector;
-    bool ret = cmd->get("--short", sVector);
+    ret = cmd->get("--short", sVector);
     if (ret)
     {
         for (auto &v : sVector)

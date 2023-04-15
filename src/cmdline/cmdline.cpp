@@ -50,7 +50,7 @@ void CmdLine::parse(int argc, char *argv[])
             }
         }
     }
-    catch(const std::exception& e)
+    catch(const std::exception &e)
     {
         std::cout << "options is invaild:" << std::endl;
         std::cout << e.what() << std::endl;
@@ -63,34 +63,36 @@ void CmdLine::parse(int argc, char *argv[])
 
 void CmdLine::paramCheck()
 {
-    std::set<std::string> enableSet;
-    for (auto &l : paramTable)
+    std::string name = "";
+    try
     {
-        if (l->getEnable())
+        std::set<std::string> enableSet;
+        for (auto &l : paramTable)
         {
-            enableSet.emplace(l->getName());
-            enableSet.emplace(l->getShortName());
+            if (l->getEnable())
+            {
+                enableSet.emplace(l->getName());
+                enableSet.emplace(l->getShortName());
+            }
+        }
+
+        for (auto &l : paramTable)
+        {
+            if (l->getEnable())
+            {
+                name = l->getName();
+                l->searchDeps(enableSet);
+            } 
         }
     }
-
-    for (auto &l : paramTable)
+    catch(const std::exception &e)
     {
-        if (l->getEnable())
-        {
-            auto &deps = l->getDepList();
-            for (auto &d : deps)
-            {
-                if (enableSet.find(d) == enableSet.end())
-                {
-                    std::cout << "options error:" << std::endl;
-                    std::string str = std::string("paramter ") +
-                          l->getName() + " depends paramter " + d;
-                    std::cout << str << std::endl;
-                    std::cout << std::endl;
-                    showHelp();
-                }
-            }
-        } 
+        std::cout << "options error:" << std::endl;
+        std::string str = std::string("paramter ") + name + 
+                          " depends paramter " + e.what();
+        std::cout << str << std::endl;
+        std::cout << std::endl;
+        showHelp();
     }
 }
 
