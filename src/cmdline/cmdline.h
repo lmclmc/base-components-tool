@@ -526,14 +526,12 @@ public:
     std::string getName();
     std::string getShortName();
     std::string getDescription();
-    std::list<std::string> &getDepList();
 
 private:
     bool mEnable;
     std::string mName;
     std::string mShortName;
     std::string mDescribtion;
-    std::list<std::string> mDep;
 };
 
 template<class STL_T, class STL_S = typename ReBind<STL_T, std::string>::type>
@@ -579,13 +577,13 @@ class ParamWithValue final : public ParamBase
     constexpr static STLType typeIdx = Search<STL_T, STLList>::typeIdx;
 public:
     ParamWithValue(const std::string &name_,
-                const std::string &shortName_,
-                const std::string &describtion_,
-                const STL_S &dep_,
-                const STL_T &range_) :
-                range(range_),
-                deps(dep_),
-                ParamBase(name_, shortName_, describtion_){}
+                   const std::string &shortName_,
+                   const std::string &describtion_,
+                   const STL_S &dep_,
+                   const STL_T &range_) :
+                   range(range_),
+                   deps(dep_),
+                   ParamBase(name_, shortName_, describtion_){}
     ~ParamWithValue() = default;
 
     STL_T &get()
@@ -676,7 +674,7 @@ public:
     bool get(const std::string &name)
     {
         None<int> n;
-        return get<None<int>>(name, n);
+        return get(name, n);
     }
 
     void parse(int, char *[]);
