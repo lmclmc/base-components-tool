@@ -513,8 +513,7 @@ class ParamBase
 public:
     ParamBase(const std::string &name_,
               const std::string &shortName_,
-              const std::string &describtion_,
-              const std::list<std::string> &dep = std::list<std::string>());
+              const std::string &describtion_);
     virtual ~ParamBase() = default;
 
     virtual bool set(const std::string &) = 0;

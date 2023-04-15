@@ -141,16 +141,8 @@ void ParamBase::setEnable(bool enable)
 
 ParamBase::ParamBase(const std::string &name_,
                      const std::string &shortName_,
-                     const std::string &describtion_,
-                     const std::list<std::string> &dep) :
+                     const std::string &describtion_) :
                      mName(name_),
                      mShortName(shortName_),
                      mDescribtion(describtion_),
-                     mEnable(false),
-                     mDep(dep)
-{}
-
-std::list<std::string> &ParamBase::getDepList()
-{
-    return mDep;
-}
+                     mEnable(false) {}
