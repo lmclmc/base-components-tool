@@ -58,7 +58,7 @@ struct Search<TargetType, TypeList<TargetType, Args...>>
 {
     constexpr static bool status = true;
     constexpr static int value = 0;
-    constexpr static STLType typeIdx = STLType::VLD;
+    constexpr static STLType typeIdx = STLType::NONE;
 };
 
 template<typename TargetType, typename HeadType, typename ...Args>
@@ -67,11 +67,12 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value < 3 ? STLType::VLD : 
-                                       value < 5 ? STLType::SET : 
-                                       value < 7 ? STLType::UNORDERED_SET : 
-                                       value == 7 ? STLType::QUEUE : 
-                                       value == 8 ? STLType::STACK : 
+    constexpr static STLType typeIdx = value == 0 ? STLType::NONE :
+                                       value < 4 ? STLType::VLD : 
+                                       value < 6 ? STLType::SET : 
+                                       value < 8 ? STLType::UNORDERED_SET : 
+                                       value == 8 ? STLType::QUEUE : 
+                                       value == 9 ? STLType::STACK : 
                                        STLType::FORWARD_LIST;
 };
 
@@ -92,6 +93,9 @@ struct BreakDown<STL<T, Args...>>
     using type = T;
 };
 
+template<typename T>
+class None{};
+
 template<typename ...Args>
 struct ReBind;
 
@@ -100,6 +104,12 @@ template<template<typename ...Args> class STL, typename T,
 struct ReBind<STL<T, Args...>, ReplaceType>
 {
     using type = STL<ReplaceType>;
+};
+
+template<typename T1, typename T2>
+struct ReBind<None<T1>, T2>
+{
+    using type = std::list<T2>;
 };
 
 class CmdLineError : public std::exception {
@@ -127,7 +137,44 @@ template<typename STL_T, typename T, STLType t>
 struct STLOperation;
 
 template<typename STL_T, typename T>
-struct STLOperation<STL_T, T, STLType::VLD>
+struct STLOperation<STL_T, T, STLType::NONE>
+{
+    static void push(STL_T &data, T &t){}
+
+    static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
+    {
+        for (auto &d : deps)
+        {
+            if (set.find(d) == set.end())
+            {
+                CmdLineError err;
+                err << d;
+                throw err;
+            }
+        }
+
+        return;
+    }
+
+    static int getSize(STL_T &data)
+    {
+        return 0;
+    }
+
+    static T getMin(STL_T &range)
+    {
+        return T();
+    }
+
+    static T getMax(STL_T &range)
+    {
+        return T();
+    }
+};
+
+template<typename STL_T, typename T>
+struct STLOperation<STL_T, T, STLType::VLD> :
+       public STLOperation<STL_T, T, STLType::NONE>
 {
     static int getSize(STL_T &data)
     {
@@ -148,21 +195,6 @@ struct STLOperation<STL_T, T, STLType::VLD>
         }
 
         return false;
-    }
-
-    static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
-    {
-        for (auto &d : deps)
-        {
-            if (set.find(d) == set.end())
-            {
-                CmdLineError err;
-                err << d;
-                throw err;
-            }
-        }
-
-        return;
     }
 
     static std::string getTraverseStr(const STL_T &range)
@@ -486,7 +518,6 @@ public:
     virtual ~ParamBase() = default;
 
     virtual bool set(const std::string &) = 0;
-    virtual bool hasParam() = 0;
     virtual void searchDeps(std::set<std::string> &) = 0;
     virtual std::string getRangeStr() = 0;
 
@@ -505,42 +536,11 @@ private:
     std::list<std::string> mDep;
 };
 
-class ParamNone : public ParamBase
-{
-public:
-    ParamNone(const std::string &name_,
-              const std::string &shortName_,
-              const std::string &describtion_,
-              const std::list<std::string> &dep = std::list<std::string>()) :
-              ParamBase(name_, shortName_, describtion_, dep){}
-    ~ParamNone() = default;
-
-protected:
-    bool set(const std::string &) override
-    {
-        return false;
-    }
-
-    std::string getRangeStr() override
-    {
-        return "";
-    }
-
-    bool hasParam() override
-    {
-        return false;
-    }
-
-    void searchDeps(std::set<std::string> &set) override
-    {
-
-    }
-};
-
 template<class STL_T, class STL_S = typename ReBind<STL_T, std::string>::type>
 class ParamWithValue final : public ParamBase
 {
     using T                         = typename BreakDown<STL_T>::type;
+    using NoneType                  = None<T>;
     using ListType                  = typename std::list<T>;
     using VectorType                = typename std::vector<T>;
     using DequeType                 = typename std::deque<T>;
@@ -552,8 +552,10 @@ class ParamWithValue final : public ParamBase
     using StackType                 = typename std::stack<T>;
     using ForwardListType           = typename std::forward_list<T>;
     using EmptyStl                  = TypeList<>;
-    using PushListType              = typename PushType<ListType, 
+    using PushNoneType              = typename PushType<NoneType, 
                                                EmptyStl>::type;
+    using PushListType              = typename PushType<ListType, 
+                                               PushNoneType>::type;
     using PushVectorType            = typename PushType<VectorType, 
                                                PushListType>::type;
     using PushDequeType             = typename PushType<DequeType, 
@@ -602,11 +604,6 @@ protected:
         return true;
     }
 
-    bool hasParam() override
-    {
-        return true;
-    }
-
     std::string getRangeStr() override
     {
        return RangeToStr<STL_T, T, STLList, isNum>()(range);
@@ -638,7 +635,7 @@ public:
      * @param range 可选参数,参数范围
      * @return 返回无
      */
-    template<class STL_T, 
+    template<class STL_T = None<int>, 
              class STL_S = typename ReBind<STL_T, std::string>::type>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, STL_S dep = STL_S(), 
@@ -647,23 +644,6 @@ public:
         paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
                                                  shortName, describtion, dep, 
                                                  range));
-    }
-
-    /**
-     * @brief add 重载函数 设置命令行选项
-     * @param shortName 选项短名称
-     * @param name 选项长名称
-     * @param describtion 选项描述
-     * @param dep 选项依赖
-     * @return 返回无
-     */
-    void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion,
-             std::list<std::string> dep = std::list<std::string>())
-    {
-        paramTable.emplace_back(std::make_shared<ParamNone>(name, 
-                                                            shortName,
-                                                            describtion, dep));
     }
 
     /**
@@ -695,14 +675,8 @@ public:
      */
     bool get(const std::string &name)
     {
-        for (auto &l : paramTable)
-        {
-            if ((l->getName() == name || l->getShortName() == name) &&
-                 l->getEnable())
-                return true;
-        }
-
-        return false;
+        None<int> n;
+        return get<None<int>>(name, n);
     }
 
     void parse(int, char *[]);

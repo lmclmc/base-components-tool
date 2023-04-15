@@ -10,9 +10,8 @@ using namespace lmc;
 void CmdLine::parse(int argc, char *argv[])
 {
     cmd = argv[0];
-    paramTable.emplace_back(std::make_shared<ParamNone>("--help", 
-                                                        "-h",
-                                                        "print help message"));
+    add("-h", "--help", "print help message");
+
     std::shared_ptr<ParamBase> pB = nullptr;
     bool bSearch = false;
     try
