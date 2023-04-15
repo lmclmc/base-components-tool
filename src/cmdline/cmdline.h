@@ -92,10 +92,13 @@ struct BreakDown<STL<T, Args...>>
     using type = T;
 };
 
-template<template<typename ...Args> class STL, typename T>
-struct ReBind
+template<typename ...Args>
+struct ReBind;
+
+template<template<typename ...Args> class STL, typename T, typename ReplaceType>
+struct ReBind<STL<T>, ReplaceType>
 {
-    using type = STL<T>;
+    using type = STL<ReplaceType>;
 };
 
 template<typename STL_T, typename T, STLType t>
@@ -479,26 +482,16 @@ template<class STL_T>
 class ParamWithValue final : public ParamBase
 {
     using T                         = typename BreakDown<STL_T>::type;
-    using ListType                  = typename ReBind<std::list, 
-                                               T>::type;
-    using VectorType                = typename ReBind<std::vector, 
-                                               T>::type;
-    using DequeType                 = typename ReBind<std::deque, 
-                                               T>::type;
-    using SetType                   = typename ReBind<std::set, T
-                                               >::type;
-    using MultiSetType              = typename ReBind<std::multiset, 
-                                               T>::type;
-    using UnorderedSetType          = typename ReBind<std::unordered_set, 
-                                               T>::type;
-    using UnorderedMultiSetType     = typename ReBind<std::unordered_multiset, 
-                                               T>::type;
-    using QueueType                 = typename ReBind<std::queue, 
-                                               T>::type;
-    using StackType                 = typename ReBind<std::stack, 
-                                               T>::type;
-    using ForwardListType           = typename ReBind<std::forward_list,
-                                               T>::type;
+    using ListType                  = typename std::list<T>;
+    using VectorType                = typename std::vector<T>;
+    using DequeType                 = typename std::deque<T>;
+    using SetType                   = typename std::set<T>;
+    using MultiSetType              = typename std::multiset<T>;
+    using UnorderedSetType          = typename std::unordered_set<T>;
+    using UnorderedMultiSetType     = typename std::unordered_multiset<T>;
+    using QueueType                 = typename std::queue<T>;
+    using StackType                 = typename std::stack<T>;
+    using ForwardListType           = typename std::forward_list<T>;
     using EmptyStl                  = TypeList<>;
     using PushListType              = typename PushType<ListType, 
                                                EmptyStl>::type;
