@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
                          {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<int>("-sni", "--singleint", "get single int", 
                  {"-s", "-us", "-i"}, {12, 33});
+    cmd->add("-v", "--version", "get version");
  
     cmd->parse(argc, argv);
 
@@ -90,6 +91,12 @@ int main(int argc, char *argv[])
     if (ret)
     {
         LOGGER << "--none enable";
+    }
+
+    ret = cmd->get("--version");
+    if (ret)
+    {
+        LOGGER << "version: " << PROJECT_VERSION;
     }
 
     std::string singleStr;

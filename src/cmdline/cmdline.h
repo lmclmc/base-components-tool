@@ -5,11 +5,13 @@
  * @Author: luomincheng
  * @Date: 2023-04-16 15:28:55 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2023-04-16 15:35:31
+ * @Last Modified time: 2023-04-16 15:55:55
  */
 
 #ifndef _CMDLINE_H_
 #define _CMDLINE_H_
+
+#include "version.h"
 
 #include <iostream>
 #include <list>
