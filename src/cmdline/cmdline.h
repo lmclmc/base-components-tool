@@ -5,13 +5,11 @@
  * @Author: luomincheng
  * @Date: 2023-04-16 15:28:55 
  * @Last Modified by: mikey.zhaopeng
- * @Last Modified time: 2023-04-16 15:55:55
+ * @Last Modified time: 2023-04-16 16:45:48
  */
 
 #ifndef _CMDLINE_H_
 #define _CMDLINE_H_
-
-#include "version.h"
 
 #include <iostream>
 #include <list>
@@ -731,7 +729,14 @@ public:
         return get(name, n);
     }
 
-    void parse(int, char *[]);
+    /**
+     * @brief parse 解析命令行参数
+     * @param noParam 没有命令行参数，是否继续运行，true ：是 false: 否
+     * @param argc 命令行参数数量
+     * @param argv 命令行参数列表
+     * @return 返回 选项使能 true 否则 false
+     */
+    void parse(bool noParam, int argc, char *argv[]);
 
 private:
     void showHelp();

@@ -1,3 +1,5 @@
+#include "version.h"
+
 #include "cmdline/cmdline.h"
 #include "single/single.hpp"
 #include "log/log.h"
@@ -83,7 +85,7 @@ int main(int argc, char *argv[])
                  {"-s", "-us", "-i"}, {12, 33});
     cmd->add("-v", "--version", "get version");
  
-    cmd->parse(argc, argv);
+    cmd->parse(false, argc, argv);
 
     Logger::setLevel(LogLevel::all);
 

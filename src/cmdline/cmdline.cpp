@@ -7,10 +7,13 @@
 
 using namespace lmc;
 
-void CmdLine::parse(int argc, char *argv[])
+void CmdLine::parse(bool noParam, int argc, char *argv[])
 {
     cmd = argv[0];
     add("-h", "--help", "print help message");
+
+    if (!noParam && argc <= 1)
+        showHelp();
 
     std::shared_ptr<ParamBase> pB = nullptr;
     bool bSearch = false;

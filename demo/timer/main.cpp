@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     cmdline->add<std::list<int>>("-c", "--clear", "delay sometime clear timer");
     cmdline->add("-d", "--default", "default mode");
 
-    cmdline->parse(argc, argv);
+    cmdline->parse(false, argc, argv);
 
     LTimer *t = TypeSingle<LTimer>::getInstance();
     t->startTimer();
