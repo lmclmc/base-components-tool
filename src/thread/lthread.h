@@ -1,3 +1,11 @@
+/*
+ * @Description: 线程类，允许被继承。
+ * @Author: luomincheng
+ * @Date: 2023-04-16 15:28:55 
+ * @Last Modified by: mikey.zhaopeng
+ * @Last Modified time: 2023-04-16 15:38:04
+ */
+
 #ifndef THREAD_H
 #define THREAD_H
 
@@ -15,8 +23,8 @@ public:
     ~Thread();
 
 protected:
-void start();
-virtual void run(){}
+    void start();
+    virtual void run() = 0;
 
 private:
     void destory();

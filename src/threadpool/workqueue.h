@@ -1,3 +1,11 @@
+/*
+ * @Description: 单线程线程池，支持任意类型，任意参数数量，参数类型的任务的添加
+ * @Author: luomincheng
+ * @Date: 2023-04-16 15:28:55 
+ * @Last Modified by: luomincheng
+ * @Last Modified time: 2023-04-16 15:37:16
+ */
+
 #ifndef WORKQUEUE_H_
 #define WORKQUEUE_H_
 

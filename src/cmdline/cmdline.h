@@ -1,3 +1,13 @@
+/*
+ * @Description: 命令行解析头文件，支持容器list,vector,set,deque,stack,queue
+ *               forward_list,unordered_set,multiset,unordered_multiset
+ *               支持多次，不同类型参数输入。
+ * @Author: luomincheng
+ * @Date: 2023-04-16 15:28:55 
+ * @Last Modified by: mikey.zhaopeng
+ * @Last Modified time: 2023-04-16 15:35:31
+ */
+
 #ifndef _CMDLINE_H_
 #define _CMDLINE_H_
 
