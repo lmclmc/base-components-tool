@@ -41,14 +41,18 @@ using NumTypeList = PUSH_DOUBLE;
 
 typedef enum class STLType_ : unsigned char
 {
-    NONE, //none                    idx:-1
-    VLD, //vector list deque        idx:0 1 2
-    SET,   //set                    idx: 3
-    UNORDERED_SET, //unordered_set  idx: 5
-    QUEUE,  //queue                 idx: 6
-    STACK,  //stack                 idx: 7
-    FORWARD_LIST, //forward_list    idx: 8
+    SINGLE, //no stl                idx: -1
+    NONE, //none                    idx: 0
+    VLD, //vector list deque        idx: 1 2 3
+    SET,   //set                    idx: 4 5
+    UNORDERED_SET, //unordered_set  idx: 6
+    QUEUE,  //queue                 idx: 7
+    STACK,  //stack                 idx: 8
+    FORWARD_LIST, //forward_list    idx: 9
 } STLType;
+
+template<typename T>
+class None{};
 
 template<typename ...Args>
 struct Search;
@@ -67,7 +71,8 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
     constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value == 0 ? STLType::NONE :
+    constexpr static STLType typeIdx = value == -1 ? STLType::SINGLE :
+                                       value == 0 ? STLType::NONE :
                                        value < 4 ? STLType::VLD : 
                                        value < 6 ? STLType::SET : 
                                        value < 8 ? STLType::UNORDERED_SET : 
@@ -81,41 +86,87 @@ struct Search<TargetType, TypeList<>>
 {
     constexpr static bool status = false;
     constexpr static int value = -1;
-    constexpr static STLType typeIdx = STLType::NONE;
+    constexpr static STLType typeIdx = STLType::SINGLE;
 };
 
-template<typename ...Args>
+template<bool IsInStl, typename ...Args>
 struct BreakDown;
 
 template<template<typename ...Args> class STL, typename T, typename ...Args>
-struct BreakDown<STL<T, Args...>>
+struct BreakDown<true, STL<T, Args...>>
 {
     using type = T;
 };
 
-template<typename T>
-class None{};
+template<bool IsInStl, typename T>
+struct BreakDown<IsInStl, T>
+{
+    using type = T;
+};
 
-template<typename ...Args>
+template<typename STL_T>
+struct IsStl
+{
+    using T                         = typename BreakDown<true, STL_T>::type;
+    using NoneType                  = None<T>;
+    using ListType                  = typename std::list<T>;
+    using VectorType                = typename std::vector<T>;
+    using DequeType                 = typename std::deque<T>;
+    using SetType                   = typename std::set<T>;
+    using MultiSetType              = typename std::multiset<T>;
+    using UnorderedSetType          = typename std::unordered_set<T>;
+    using UnorderedMultiSetType     = typename std::unordered_multiset<T>;
+    using QueueType                 = typename std::queue<T>;
+    using StackType                 = typename std::stack<T>;
+    using ForwardListType           = typename std::forward_list<T>;
+    using EmptyStl                  = TypeList<>;
+    using PushNoneType              = typename PushType<NoneType, 
+                                               EmptyStl>::type;
+    using PushListType              = typename PushType<ListType, 
+                                               PushNoneType>::type;
+    using PushVectorType            = typename PushType<VectorType, 
+                                               PushListType>::type;
+    using PushDequeType             = typename PushType<DequeType, 
+                                               PushVectorType>::type;
+    using PushSetType               = typename PushType<SetType, 
+                                               PushDequeType>::type;
+    using PushMultiSetType          = typename PushType<MultiSetType, 
+                                               PushSetType>::type;
+    using PushUnorderedSetType      = typename PushType<UnorderedSetType, 
+                                               PushMultiSetType>::type;
+    using PushUnorderedMultiSetType = typename PushType<UnorderedMultiSetType, 
+                                               PushUnorderedSetType>::type;
+    using PushQueueType             = typename PushType<QueueType, 
+                                               PushUnorderedMultiSetType>::type;
+    using PushStackType             = typename PushType<StackType, 
+                                               PushQueueType>::type;
+    using PushForwardListType       = typename PushType<ForwardListType, 
+                                               PushStackType>::type;
+    using STLList                   = PushForwardListType;
+    constexpr static bool status    = Search<STL_T, STLList>::status;
+    using FinalT                    = typename BreakDown<status, STL_T>::type;
+};
+
+template<bool IsStl, typename ...Args>
 struct ReBind;
 
 template<template<typename ...Args> class STL, typename T, 
          typename ...Args, typename ReplaceType>
-struct ReBind<STL<T, Args...>, ReplaceType>
+struct ReBind<true, STL<T, Args...>, ReplaceType>
 {
     using type = STL<ReplaceType>;
 };
 
 template<typename T1, typename T2>
-struct ReBind<None<T1>, T2>
+struct ReBind<true, None<T1>, T2>
 {
     using type = std::list<T2>;
 };
 
-template<typename T>
-struct ReBind<std::string, T>
+template<typename T1, typename T2>
+struct ReBind<false, T1, T2>
 {
-    using type = std::list<T>;
+    using type = std::list<T2>;
 };
 
 class CmdLineError : public std::exception {
@@ -141,6 +192,8 @@ private:
 
 template<typename STL_T, typename T, STLType t>
 struct STLOperation;
+
+
 
 template<typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::NONE>
@@ -223,6 +276,16 @@ struct STLOperation<STL_T, T, STLType::VLD> :
     static T getMax(STL_T &range)
     {
         return *(--range.end());
+    }
+};
+
+template<typename STL_T, typename T>
+struct STLOperation<STL_T, T, STLType::SINGLE> : 
+       public STLOperation<STL_T, T, STLType::VLD>
+{
+    static void push(STL_T &data, T &t)
+    {
+        data = t;
     }
 };
 
@@ -539,47 +602,17 @@ private:
     std::string mDescribtion;
 };
 
-template<class STL_T, class STL_STR = typename ReBind<STL_T, std::string>::type,
-         class STL_T_R = STL_T>
+template<class STL_T, 
+         class STL_STR = typename ReBind<IsStl<STL_T>::status,
+                                         STL_T, std::string>::type,
+         class STL_T_R = typename ReBind<IsStl<STL_T>::status, STL_T, 
+                                         typename IsStl<STL_T>::FinalT>::type>
 class ParamWithValue final : public ParamBase
 {
-    using T                         = typename BreakDown<STL_T>::type;
-    using NoneType                  = None<T>;
-    using ListType                  = typename std::list<T>;
-    using VectorType                = typename std::vector<T>;
-    using DequeType                 = typename std::deque<T>;
-    using SetType                   = typename std::set<T>;
-    using MultiSetType              = typename std::multiset<T>;
-    using UnorderedSetType          = typename std::unordered_set<T>;
-    using UnorderedMultiSetType     = typename std::unordered_multiset<T>;
-    using QueueType                 = typename std::queue<T>;
-    using StackType                 = typename std::stack<T>;
-    using ForwardListType           = typename std::forward_list<T>;
-    using EmptyStl                  = TypeList<>;
-    using PushNoneType              = typename PushType<NoneType, 
-                                               EmptyStl>::type;
-    using PushListType              = typename PushType<ListType, 
-                                               PushNoneType>::type;
-    using PushVectorType            = typename PushType<VectorType, 
-                                               PushListType>::type;
-    using PushDequeType             = typename PushType<DequeType, 
-                                               PushVectorType>::type;
-    using PushSetType               = typename PushType<SetType, 
-                                               PushDequeType>::type;
-    using PushMultiSetType          = typename PushType<MultiSetType, 
-                                               PushSetType>::type;
-    using PushUnorderedSetType      = typename PushType<UnorderedSetType, 
-                                               PushMultiSetType>::type;
-    using PushUnorderedMultiSetType = typename PushType<UnorderedMultiSetType, 
-                                               PushUnorderedSetType>::type;
-    using PushQueueType             = typename PushType<QueueType, 
-                                               PushUnorderedMultiSetType>::type;
-    using PushStackType             = typename PushType<StackType, 
-                                               PushQueueType>::type;
-    using PushForwardListType       = typename PushType<ForwardListType, 
-                                               PushStackType>::type;
-    using STLList                   = PushForwardListType;
-    constexpr static bool isNum     = Search<T, NumTypeList>::status;
+    using T                          = typename IsStl<STL_T>::T;
+    using FinalT                     = typename IsStl<STL_T>::FinalT;
+    using STLList                    = typename IsStl<STL_T>::STLList;
+    constexpr static bool isNum      = Search<T, NumTypeList>::status;
     constexpr static STLType typeIdx = Search<STL_T, STLList>::typeIdx;
 public:
     ParamWithValue(const std::string &name_,
@@ -600,22 +633,22 @@ public:
 protected:
     bool set(const std::string &value) override
     {
-        T ret = Reader<T, isNum>()(value);
-        if (!RangeJudge<T, STL_T, STLList, isNum>()(ret, range))
+        FinalT ret = Reader<FinalT, isNum>()(value);
+        if (!RangeJudge<FinalT, STL_T_R, STLList, isNum>()(ret, range))
             return false;
         
-        STLOperation<STL_T, T, typeIdx>::push(data, ret);
+        STLOperation<STL_T, FinalT, typeIdx>::push(data, ret);
         return true;
     }
 
     std::string getRangeStr() override
     {
-       return RangeToStr<STL_T_R, T, STLList, isNum>()(range);
+       return RangeToStr<STL_T_R, FinalT, STLList, isNum>()(range);
     }
 
     void searchDeps(std::set<std::string> &set) override
     {
-        return STLOperation<STL_STR, T, typeIdx>::searchDeps(deps, set);
+        return STLOperation<STL_STR, FinalT, typeIdx>::searchDeps(deps, set);
     }
 
 private:
@@ -640,8 +673,10 @@ public:
      * @return 返回无
      */
     template<class STL_T = None<int>, 
-             class STL_STR = typename ReBind<STL_T, std::string>::type,
-             class STL_T_R = STL_T>
+             class STL_STR = typename ReBind<IsStl<STL_T>::status,
+                                             STL_T, std::string>::type,
+             class STL_T_R = typename ReBind<IsStl<STL_T>::status, STL_T, 
+                                      typename IsStl<STL_T>::FinalT>::type>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, STL_STR dep = STL_STR(), 
              STL_T_R range = STL_T_R())
