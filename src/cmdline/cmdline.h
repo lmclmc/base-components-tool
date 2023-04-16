@@ -112,6 +112,12 @@ struct ReBind<None<T1>, T2>
     using type = std::list<T2>;
 };
 
+template<typename T>
+struct ReBind<std::string, T>
+{
+    using type = std::list<T>;
+};
+
 class CmdLineError : public std::exception {
 public:
     CmdLineError(const std::string &msg = ""): msg(msg){}
@@ -429,15 +435,15 @@ struct Reader<Target, true>
     }
 };
 
-template<typename T, typename STL_T, typename STLList, bool IsNum>
+template<typename T, typename STL_T_R, typename STLList, bool IsNum>
 struct RangeJudge
 {
-    bool operator()(T &value, STL_T &range)
+    bool operator()(T &value, STL_T_R &range)
     {
-        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
-        if (STLOperation<STL_T, T, typeIdx>::getSize(range) > 0)
+        constexpr STLType typeIdx = Search<STL_T_R, STLList>::typeIdx;
+        if (STLOperation<STL_T_R, T, typeIdx>::getSize(range) > 0)
         {
-            if (STLOperation<STL_T, T, typeIdx>::traverse(range, value))
+            if (STLOperation<STL_T_R, T, typeIdx>::traverse(range, value))
                 return true;
 
             CmdLineError err;
@@ -475,17 +481,17 @@ struct RangeJudge<T, STL_T, STLList, true>
     }
 };
 
-template<class STL_T, class T, typename STLList, bool IsNum>
+template<class STL_T_R, class T, typename STLList, bool IsNum>
 struct RangeToStr
 {
-    std::string operator()(STL_T &range)
+    std::string operator()(STL_T_R &range)
     {
-        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
-        if (!STLOperation<STL_T, T, typeIdx>::getSize(range))
+        constexpr STLType typeIdx = Search<STL_T_R, STLList>::typeIdx;
+        if (!STLOperation<STL_T_R, T, typeIdx>::getSize(range))
             return "";
 
         std::string str("[");
-        str += STLOperation<STL_T, T, typeIdx>::getTraverseStr(range);
+        str += STLOperation<STL_T_R, T, typeIdx>::getTraverseStr(range);
         str += "]";
         return str;
     }
@@ -533,7 +539,8 @@ private:
     std::string mDescribtion;
 };
 
-template<class STL_T, class STL_S = typename ReBind<STL_T, std::string>::type>
+template<class STL_T, class STL_STR = typename ReBind<STL_T, std::string>::type,
+         class STL_T_R = STL_T>
 class ParamWithValue final : public ParamBase
 {
     using T                         = typename BreakDown<STL_T>::type;
@@ -578,8 +585,8 @@ public:
     ParamWithValue(const std::string &name_,
                    const std::string &shortName_,
                    const std::string &describtion_,
-                   const STL_S &dep_,
-                   const STL_T &range_) :
+                   const STL_STR &dep_,
+                   const STL_T_R &range_) :
                    range(range_),
                    deps(dep_),
                    ParamBase(name_, shortName_, describtion_){}
@@ -603,18 +610,18 @@ protected:
 
     std::string getRangeStr() override
     {
-       return RangeToStr<STL_T, T, STLList, isNum>()(range);
+       return RangeToStr<STL_T_R, T, STLList, isNum>()(range);
     }
 
     void searchDeps(std::set<std::string> &set) override
     {
-        return STLOperation<STL_S, T, typeIdx>::searchDeps(deps, set);
+        return STLOperation<STL_STR, T, typeIdx>::searchDeps(deps, set);
     }
 
 private:
     STL_T data;
-    STL_T range;
-    STL_S deps;
+    STL_T_R range;
+    STL_STR deps;
 };
 
 class CmdLine
@@ -633,10 +640,11 @@ public:
      * @return 返回无
      */
     template<class STL_T = None<int>, 
-             class STL_S = typename ReBind<STL_T, std::string>::type>
+             class STL_STR = typename ReBind<STL_T, std::string>::type,
+             class STL_T_R = STL_T>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, STL_S dep = STL_S(), 
-             STL_T range = STL_T())
+             const std::string &describtion, STL_STR dep = STL_STR(), 
+             STL_T_R range = STL_T_R())
     {
         paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
                                                  shortName, describtion, dep, 

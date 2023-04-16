@@ -75,17 +75,35 @@ int main(int argc, char *argv[])
     cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
                                            "get unordered_multiset int", 
                                            {}, {44, 99});
-    cmd->add("-z", "--single", "get single", {"-s", "-us", "-i"});
+    cmd->add("-n", "--none", "get none", {"-s", "-us", "-i"});
+    // cmd->add<std::string>("-sns", "--singlestring", "get single string", {"-s", "-us", "-i"},
+    //                                       {"aaa", "vvv", "bbb", "rrr", "ttt"});
+    // cmd->add<int>("-sni", "--singleint", "get single int", {"-s", "-us", "-i"},
+    //                                                                 {12, 33});
  
     cmd->parse(argc, argv);
 
     Logger::setLevel(LogLevel::all);
 
-    bool ret = cmd->get("--single");
+    bool ret = cmd->get("--none");
     if (ret)
     {
-        LOGGER << "--single enable";
+        LOGGER << "--none enable";
     }
+
+    // std::string singleStr;
+    // bool ret = cmd->get("--singlestring", singleStr);
+    // if (ret)
+    // {
+    //     LOGGER << singleStr;
+    // }
+
+    // int singleInt;
+    // ret = cmd->get("--singleint", singleInt);
+    // if (ret)
+    // {
+    //     LOGGER << singleInt;
+    // }
 
     std::vector<short> sVector;
     ret = cmd->get("--short", sVector);
