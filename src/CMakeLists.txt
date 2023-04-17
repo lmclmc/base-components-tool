@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
 
-aux_source_directory(./thread/ BASE_FILES)
 aux_source_directory(./threadpool/ BASE_FILES)
 aux_source_directory(./timer/ BASE_FILES)
 aux_source_directory(./yqueue/ BASE_FILES)
@@ -18,8 +17,8 @@ install(DIRECTORY single/ DESTINATION
                   ${PROJECT_BINARY_DIR}/install/include/single/)
 install(FILES log/log.h DESTINATION 
               ${PROJECT_BINARY_DIR}/install/include/log/)
-install(FILES thread/lthread.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/thread/)
+install(FILES threadpool/lthread.h DESTINATION 
+              ${PROJECT_BINARY_DIR}/install/include/threadpool/)
 install(FILES threadpool/workqueue.h DESTINATION 
               ${PROJECT_BINARY_DIR}/install/include/threadpool/)
 install(FILES timer/ltimer.h DESTINATION 

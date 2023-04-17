@@ -9,7 +9,7 @@
 #ifndef WORKQUEUE_H_
 #define WORKQUEUE_H_
 
-#include "thread/lthread.h"
+#include "lthread.h"
 #include "single/spinmutex.hpp"
 
 #include <future>
