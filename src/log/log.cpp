@@ -7,12 +7,11 @@
 
 #include "log.h"
 
-using namespace std;
 using namespace lmc;
 
 #define BUFFER_SIZE (128)
 
-LogLevel lmc::Logger::sLevel = LogLevel::close;
+LogLevel Logger::sLevel = LogLevel::close;
 std::string Logger::sOutputFile = "";
 LogFormat Logger::sLogFormat = LogFormat::num;
 int Logger::sOutputFd = 0;
@@ -60,7 +59,7 @@ Logger::~Logger()
     if (!judgeLevel()) return;
 
     if (sOutputFile.empty())
-        cout << strLog << endl;
+        std::cout << strLog << std::endl;
     else if (!sOutputFd)
     {
         sOutputFd = open(sOutputFile.c_str(), O_CREAT | O_APPEND | O_RDWR, 0666);
@@ -68,87 +67,20 @@ Logger::~Logger()
             return;
         strLog += "\n";
         if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
-            cout << "write : error " << strerror(errno) << endl;
+            std::cout << "write : error " << strerror(errno) << std::endl;
     }
     else
     {
         strLog += "\n";
         if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
-            cout << "write : error " << strerror(errno) << endl;
+            std::cout << "write : error " << strerror(errno) << std::endl;
     } 
-}
-
-Logger &Logger::operator << (const string& str)
-{
-    if (!judgeLevel()) return *this;
-
-    strLog += str;
-    return *this;
 }
 
 Logger &Logger::operator << (LogFormat logFormat)
 {
     if (!judgeLevel()) return *this;
     sLogFormat = logFormat;
-    return *this;
-}
-
-Logger &Logger::operator << (uint64_t num)
-{
-    if (!judgeLevel()) return *this;
-
-    if (sLogFormat == LogFormat::addr)
-    {
-        char buffer[BUFFER_SIZE] = {0};
-        void *p = (void *)num;
-        snprintf(buffer, BUFFER_SIZE, "%p", p);
-        strLog += buffer;
-    }
-    else
-        strLog += std::to_string(num);
-
-    return *this;
-}
-
-Logger &Logger::operator << (uint32_t num)
-{
-    if (!judgeLevel()) return *this;
-
-    strLog += std::to_string(num);
-    return *this;
-}
-
-Logger &Logger::operator << (double d)
-{
-    if (!judgeLevel()) return *this;
-
-    strLog += std::to_string(d);
-    return *this;
-}
-
-Logger &Logger::operator << (int num)
-{
-    if (!judgeLevel()) return *this;
-
-    strLog += std::to_string(num);
-    return *this;
-}
-
-Logger &Logger::operator << (const char *src)
-{
-    if (!judgeLevel()) return *this;
-
-    if (NULL == src) return *this;
-
-    strLog += src;
-    return *this;
-}
-
-Logger &Logger::operator << (long int num)
-{
-    if (!judgeLevel()) return *this;
-
-    strLog += std::to_string(num);
     return *this;
 }
 
@@ -162,7 +94,7 @@ bool Logger::judgeLevel()
     return false;
 }
 
-string Logger::getString()
+std::string Logger::getString()
 {
     return strLog;
 }

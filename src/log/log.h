@@ -4,13 +4,15 @@
 #include <iostream>
 #include <elf.h>
 
-using std::string;
+#include "type/type.h"
 
 #define LOGGER_INFO     (lmc::Logger(LogLevel::info) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
 #define LOGGER_DEBUG    (lmc::Logger(LogLevel::debug) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
 #define LOGGER_ERROR    (lmc::Logger(LogLevel::error) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
 #define LOGGER_WARNING  (lmc::Logger(LogLevel::warning) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
 #define LOGGER          (lmc::Logger(LogLevel::print))
+
+#define BUFFER_SIZE (128)
 
 typedef enum class LogLevel_: unsigned char
 {
@@ -31,21 +33,44 @@ typedef enum class LogFormat_: unsigned char
 
 namespace lmc
 {
+template<bool IsNum>
+struct Trans
+{
+    template<typename T>
+    std::string operator()(T &value)
+    {
+        return value;
+    }
+};
+
+template<>
+struct Trans<true>
+{
+    template<typename T>
+    std::string operator()(T &value)
+    {
+        return std::to_string(value);
+    }
+};
+
 class Logger
 {
 public:
     Logger(const LogLevel &level);
     ~Logger();
 
-    Logger &operator << (const std::string &);
-    Logger &operator << (const char *);
-    Logger &operator << (uint64_t);
-    Logger &operator << (uint32_t);
-    Logger &operator << (double);
-    Logger &operator << (int);
-    Logger &operator << (long int);
+    template<typename T>
+    Logger &operator << (T &value)
+    {
+        if (!judgeLevel()) return *this;
+
+        strLog += Trans<Search<typename std::remove_cv<T>::type, 
+                               NumTypeList>::status>()(value);
+        return *this;
+    }
+
     Logger &operator << (LogFormat);
-    string getString();
+    std::string getString();
 
     static void setOutputFile(const std::string &);
     static void setLevel(LogLevel);

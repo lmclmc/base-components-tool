@@ -159,8 +159,6 @@ private:
 template<typename STL_T, typename T, STLType t>
 struct STLOperation;
 
-
-
 template<typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::NONE>
 {
