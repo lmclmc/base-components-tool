@@ -37,7 +37,7 @@ template<bool IsNum>
 struct Trans
 {
     template<typename T>
-    std::string operator()(T &value)
+    std::string operator()(const T &value)
     {
         return value;
     }
@@ -47,7 +47,7 @@ template<>
 struct Trans<true>
 {
     template<typename T>
-    std::string operator()(T &value)
+    std::string operator()(const T &value)
     {
         return std::to_string(value);
     }
@@ -60,11 +60,11 @@ public:
     ~Logger();
 
     template<typename T>
-    Logger &operator << (T &value)
+    Logger &operator << (const T &value)
     {
         if (!judgeLevel()) return *this;
 
-        strLog += Trans<Search<typename std::remove_cv<T>::type, 
+        strLog += Trans<Search<std::__remove_cvref_t<T>, 
                                NumTypeList>::status>()(value);
         return *this;
     }
