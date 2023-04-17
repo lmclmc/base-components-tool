@@ -42,23 +42,10 @@ template<typename T>
 class None{};
 
 template<typename ...Args>
-struct Search;
-
-template<typename TargetType, typename ...Args>
-struct Search<TargetType, TypeList<TargetType, Args...>>
+struct SearchStlType
 {
-    constexpr static bool status = true;
-    constexpr static int value = 0;
-    constexpr static STLType typeIdx = STLType::NONE;
-};
-
-template<typename TargetType, typename HeadType, typename ...Args>
-struct Search<TargetType, TypeList<HeadType, Args...>>
-{
-    constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
-    constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
-    constexpr static int value = tmp == -1 ? -1 : tmp + 1;
-    constexpr static STLType typeIdx = value == -1 ? STLType::SINGLE :
+    constexpr static int value = Search<Args...>::value;
+    constexpr static STLType stlType = value == -1 ? STLType::SINGLE :
                                        value == 0 ? STLType::NONE :
                                        value < 4 ? STLType::VLD : 
                                        value < 6 ? STLType::SET : 
@@ -66,14 +53,6 @@ struct Search<TargetType, TypeList<HeadType, Args...>>
                                        value == 8 ? STLType::QUEUE : 
                                        value == 9 ? STLType::STACK : 
                                        STLType::FORWARD_LIST;
-};
-
-template<typename TargetType>
-struct Search<TargetType, TypeList<>>
-{
-    constexpr static bool status = false;
-    constexpr static int value = -1;
-    constexpr static STLType typeIdx = STLType::SINGLE;
 };
 
 template<bool IsInStl, typename ...Args>
@@ -490,10 +469,10 @@ struct RangeJudge
 {
     bool operator()(T &value, STL_T_R &range)
     {
-        constexpr STLType typeIdx = Search<STL_T_R, STLList>::typeIdx;
-        if (STLOperation<STL_T_R, T, typeIdx>::getSize(range) > 0)
+        constexpr STLType stlType = SearchStlType<STL_T_R, STLList>::stlType;
+        if (STLOperation<STL_T_R, T, stlType>::getSize(range) > 0)
         {
-            if (STLOperation<STL_T_R, T, typeIdx>::traverse(range, value))
+            if (STLOperation<STL_T_R, T, stlType>::traverse(range, value))
                 return true;
 
             CmdLineError err;
@@ -512,11 +491,11 @@ struct RangeJudge<T, STL_T, STLList, true>
 {
     bool operator()(T &value, STL_T &range)
     {
-        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
-        if (STLOperation<STL_T, T, typeIdx>::getSize(range) > 0)
+        constexpr STLType stlType = SearchStlType<STL_T, STLList>::stlType;
+        if (STLOperation<STL_T, T, stlType>::getSize(range) > 0)
         {
-            T min = STLOperation<STL_T, T, typeIdx>::getMin(range);
-            T max = STLOperation<STL_T, T, typeIdx>::getMax(range);
+            T min = STLOperation<STL_T, T, stlType>::getMin(range);
+            T max = STLOperation<STL_T, T, stlType>::getMax(range);
             if (min > value || max < value)
             {
                 CmdLineError err;
@@ -536,12 +515,12 @@ struct RangeToStr
 {
     std::string operator()(STL_T_R &range)
     {
-        constexpr STLType typeIdx = Search<STL_T_R, STLList>::typeIdx;
-        if (!STLOperation<STL_T_R, T, typeIdx>::getSize(range))
+        constexpr STLType stlType = SearchStlType<STL_T_R, STLList>::stlType;
+        if (!STLOperation<STL_T_R, T, stlType>::getSize(range))
             return "";
 
         std::string str("[");
-        str += STLOperation<STL_T_R, T, typeIdx>::getTraverseStr(range);
+        str += STLOperation<STL_T_R, T, stlType>::getTraverseStr(range);
         str += "]";
         return str;
     }
@@ -552,12 +531,12 @@ struct RangeToStr<STL_T, T, STLList, true>
 {
     std::string operator()(STL_T &range)
     {
-        constexpr STLType typeIdx = Search<STL_T, STLList>::typeIdx;
-        if (!STLOperation<STL_T, T, typeIdx>::getSize(range))
+        constexpr STLType stlType = SearchStlType<STL_T, STLList>::stlType;
+        if (!STLOperation<STL_T, T, stlType>::getSize(range))
             return "";
 
-        int min = STLOperation<STL_T, T, typeIdx>::getMin(range);
-        int max = STLOperation<STL_T, T, typeIdx>::getMax(range);
+        int min = STLOperation<STL_T, T, stlType>::getMin(range);
+        int max = STLOperation<STL_T, T, stlType>::getMax(range);
         return std::string("[") + std::to_string(min) + " , " 
                                 + std::to_string(max) + "]";
 
@@ -600,7 +579,8 @@ class ParamWithValue final : public ParamBase
     using FinalT                     = typename IsStl<STL_T>::FinalT;
     using STLList                    = typename IsStl<STL_T>::STLList;
     constexpr static bool isNum      = Search<T, NumTypeList>::status;
-    constexpr static STLType typeIdx = Search<STL_T, STLList>::typeIdx;
+    constexpr static STLType stlType = SearchStlType<STL_T, STLList>::stlType;
+
 public:
     ParamWithValue(const std::string &name_,
                    const std::string &shortName_,
@@ -624,7 +604,7 @@ protected:
         if (!RangeJudge<FinalT, STL_T_R, STLList, isNum>()(ret, range))
             return false;
         
-        STLOperation<STL_T, FinalT, typeIdx>::push(data, ret);
+        STLOperation<STL_T, FinalT, stlType>::push(data, ret);
         return true;
     }
 
@@ -635,7 +615,7 @@ protected:
 
     void searchDeps(std::set<std::string> &set) override
     {
-        return STLOperation<STL_STR, FinalT, typeIdx>::searchDeps(deps, set);
+        return STLOperation<STL_STR, FinalT, stlType>::searchDeps(deps, set);
     }
 
 private:

@@ -26,6 +26,31 @@ namespace lmc
     #define PUSH_FLOAT          PushType<float, PUSH_LONG>::type
     #define PUSH_DOUBLE         PushType<double, PUSH_FLOAT>::type
     using NumTypeList = PUSH_DOUBLE;
+
+    template<typename ...Args>
+    struct Search;
+
+    template<typename TargetType, typename ...Args>
+    struct Search<TargetType, TypeList<TargetType, Args...>>
+    {
+        constexpr static bool status = true;
+        constexpr static int value = 0;
+    };
+
+    template<typename TargetType, typename HeadType, typename ...Args>
+    struct Search<TargetType, TypeList<HeadType, Args...>>
+    {
+        constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
+        constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
+        constexpr static int value = tmp == -1 ? -1 : tmp + 1;
+    };
+
+    template<typename TargetType>
+    struct Search<TargetType, TypeList<>>
+    {
+        constexpr static bool status = false;
+        constexpr static int value = -1;
+    };
 };
 
 #endif
