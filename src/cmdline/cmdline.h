@@ -28,14 +28,14 @@ namespace lmc
 {
 typedef enum class STLType_ : unsigned char
 {
-    SINGLE, //no stl                idx: -1
-    NONE, //none                    idx: 0
-    VLD, //vector list deque        idx: 1 2 3
-    SET,   //set                    idx: 4 5
-    UNORDERED_SET, //unordered_set  idx: 6
-    QUEUE,  //queue                 idx: 7
-    STACK,  //stack                 idx: 8
-    FORWARD_LIST, //forward_list    idx: 9
+    SINGLE, //no stl                                  idx: -1
+    NONE, //none                                      idx: 0
+    VLD, //vector list deque                          idx: 1 2 3
+    SET,   //set  multiset                            idx: 4 5
+    UNORDERED_SET, //unordered_set unordered_multiset idx: 6 7
+    QUEUE,  //queue                                   idx: 8
+    STACK,  //stack                                   idx: 9
+    FORWARD_LIST, //forward_list                      idx: 10
 } STLType;
 
 template<typename T>
