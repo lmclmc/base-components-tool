@@ -24,7 +24,7 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
             bSearch = false;
             if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1))
             {
-                if (!strncmp(argv[i], "--help", 6) || 
+                if (!strncmp(argv[i], "--help", 6) ||
                     !strncmp(argv[i], "-h", 2))
                     showHelp();
 
@@ -38,10 +38,14 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
                         pB = l;
                         break;
                     }
-                }  
+                }
 
                 if (!bSearch)
-                    showHelp();
+                {
+                    CmdLineError err;
+                    err << "    " << argv[i];
+                    throw err;
+                }
             }
             else
             {

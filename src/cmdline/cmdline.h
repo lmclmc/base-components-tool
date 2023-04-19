@@ -474,8 +474,9 @@ struct RangeJudge
                 return true;
 
             CmdLineError err;
-            err << "value \"" << value << "\" is out of range \n    ";
-            
+            err << "    value \"" << value << "\" is out of range \n    "
+                << "param range is [ "
+                << STLOperation<STL_T_R, T, stlType>::getTraverseStr(range) << "]";
             throw err;
             return false;
         }
@@ -497,7 +498,7 @@ struct RangeJudge<T, STL_T, STLList, true>
             if (min > value || max < value)
             {
                 CmdLineError err;
-                err << "value range is " << min << " to " 
+                err << "    value range is " << min << " to "
                     << max << " , " << value << " is out of range";
                 throw err;
                 return false;
@@ -665,36 +666,26 @@ public:
     }
 
     /**
-     * @brief get 获取选项信息，以及参数信息,注意参数只能获取一次
+     * @brief get 获取选项信息，或者获取参数信息,注意参数只能获取一次
      * @param name 选项名称
-     * @param t  参数
+     * @param t  获取参数信息
      * @return 返回 选项使能 true 否则 false
      */
-    template<class STL_T>
-    bool get(const std::string &name, STL_T &t)
+    template<class STL_T = None<int>>
+    bool get(const std::string &name, STL_T &&t = STL_T())
     {
         for (auto &l : paramTable)
         {
             if ((l->getName() == name || l->getShortName() == name) &&
                  l->getEnable())
             {
-                auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T>>(l);
+                auto p = std::dynamic_pointer_cast<
+                         ParamWithValue<std::__remove_cvref_t<STL_T>>>(l);
                 t = std::move(p->get());
                 return true;
             }
         }
         return false;
-    }
-
-    /**
-     * @brief get 重载函数 获取选项信息
-     * @param name 选项名称
-     * @return 返回 选项使能 true 否则 false
-     */
-    bool get(const std::string &name)
-    {
-        None<int> n;
-        return get(name, n);
     }
 
     /**
