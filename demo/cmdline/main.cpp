@@ -81,7 +81,9 @@ int main(int argc, char *argv[])
     cmd->add<std::string>("-sns", "--singlestring", "get single string", 
                          {"-s", "-us", "-i"}, 
                          {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    cmd->add<int>("-sni", "--singleint", "get single int", 
+    cmd->add<int>("-sni1", "--singleint1", "get single int1", 
+                 {"-s", "-us", "-i"}, {12, 33});
+    cmd->add<int>("-sni2", "--singleint2", "get single int2", 
                  {"-s", "-us", "-i"}, {12, 33});
     cmd->add("-v", "--version", "get version");
  
@@ -108,11 +110,18 @@ int main(int argc, char *argv[])
         LOGGER << singleStr;
     }
 
-    int singleInt;
-    ret = cmd->get("--singleint", singleInt);
+    int singleInt1;
+    ret = cmd->get("--singleint1", singleInt1);
     if (ret)
     {
-        LOGGER << singleInt;
+        LOGGER << singleInt1;
+    }
+
+    int singleInt2;
+    ret = cmd->get("--singleint2", singleInt2);
+    if (ret)
+    {
+        LOGGER << singleInt2;
     }
 
     std::vector<short> sVector;

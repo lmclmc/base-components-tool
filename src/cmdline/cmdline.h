@@ -587,6 +587,7 @@ public:
                    const STL_T_R &range_) :
                    range(range_),
                    deps(dep_),
+                   singleParamStatus(true),
                    ParamBase(name_, shortName_, describtion_){}
     ~ParamWithValue() = default;
 
@@ -602,7 +603,18 @@ protected:
         if (!RangeJudge<FinalT, STL_T_R, STLList, isNum>()(ret, range))
             return false;
         
-        STLOperation<STL_T, FinalT, stlType>::push(data, ret);
+        if (singleParamStatus)
+        {
+            STLOperation<STL_T, FinalT, stlType>::push(data, ret);
+            singleParamStatus = stlType == STLType::SINGLE ? false : true;
+        }
+        else
+        {
+            CmdLineError err;
+            err << "option " << getName()
+                << " error : Only one parameter can be input";
+            throw err;
+        }
         return true;
     }
 
@@ -617,6 +629,7 @@ protected:
     }
 
 private:
+    bool singleParamStatus;
     STL_T data;
     STL_T_R range;
     STL_STR deps;
