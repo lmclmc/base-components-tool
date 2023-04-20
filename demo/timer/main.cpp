@@ -4,17 +4,16 @@
 #include "single/single.hpp"
 #include "cmdline/cmdline.h"
 #include <unistd.h>
-#include <map>
+
 using namespace std;
 using namespace lmc;
-#include <queue>
-#include <stack>
+
 int main(int argc, char *argv[])
 {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
 
     cmdline->add<std::list<int>>("-a", "--add", "add timer");
-    cmdline->add<std::list<int>>("-c", "--clear", "delay sometime clear timer");
+    cmdline->add<int>("-c", "--clear", "delay sometime clear all timer");
     cmdline->add("-d", "--default", "default mode");
 
     cmdline->parse(false, argc, argv);
@@ -100,11 +99,11 @@ int main(int argc, char *argv[])
                 tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
             });
         }
-
-        ret = cmdline->get("--clear", sList);
+        int time;
+        ret = cmdline->get("--clear", time);
         if (ret)
         {
-            usleep(sList.front());
+            usleep(time * 1000);
             t->clearTimer();
         }
     }
