@@ -3,6 +3,8 @@
 
 using namespace std;
 
+#define DELAY_TIME (20000)
+
 LTimer::LTimer() : bStatus(false),
                    w(make_shared<WorkQueue>(MutexType::None)),
                    timeStamp(0),
@@ -129,7 +131,7 @@ void LTimer::task()
         }
         else
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(1000));
+            std::this_thread::sleep_for(std::chrono::microseconds(DELAY_TIME));
         }
 
         if (!this->bStatus)
