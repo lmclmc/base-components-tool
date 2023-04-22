@@ -518,7 +518,7 @@ struct RangeToStr
         if (!STLOperation<STL_T_R, T, stlType>::getSize(range))
             return "";
 
-        std::string str("[");
+        std::string str("[ ");
         str += STLOperation<STL_T_R, T, stlType>::getTraverseStr(range);
         str += "]";
         return str;
