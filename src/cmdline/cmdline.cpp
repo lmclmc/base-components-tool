@@ -24,8 +24,8 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
             bSearch = false;
             if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1))
             {
-                if (!strncmp(argv[i], "--help", 6) ||
-                    !strncmp(argv[i], "-h", 2))
+                if ((!strncmp(argv[i], "--help", 6) && strlen(argv[i]) == 6) ||
+                    (!strncmp(argv[i], "-h", 2) && strlen(argv[i]) == 2))
                     showHelp();
 
                 for (auto &l : paramTable)
