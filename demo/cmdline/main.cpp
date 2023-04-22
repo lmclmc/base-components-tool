@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
     {
         for (auto &v : intUnorderedmultiset)
         {
-            LOGGER << v;
+            LOGGER << LogFormat::addr << v;
         }
     }
 }

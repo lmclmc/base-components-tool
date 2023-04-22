@@ -37,7 +37,7 @@ template<bool IsNum>
 struct Trans
 {
     template<typename T>
-    std::string operator()(const T &value)
+    std::string operator()(const T &value, LogFormat)
     {
         return value;
     }
@@ -47,9 +47,18 @@ template<>
 struct Trans<true>
 {
     template<typename T>
-    std::string operator()(const T &value)
+    std::string operator()(const T &value, LogFormat format)
     {
-        return std::to_string(value);
+        if (format == LogFormat::addr)
+        {
+            char buffer[BUFFER_SIZE] = {0};
+            snprintf(buffer, BUFFER_SIZE, "0x%lx", (long unsigned int)value);
+            return buffer;
+        }
+        else
+        {
+            return std::to_string(value);
+        }
     }
 };
 
@@ -65,7 +74,7 @@ public:
         if (!judgeLevel()) return *this;
 
         strLog += Trans<Search<std::__remove_cvref_t<T>, 
-                               NumTypeList>::status>()(value);
+                               NumTypeList>::status>()(value, sLogFormat);
         return *this;
     }
 
