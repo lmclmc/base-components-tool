@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(lmcbase VERSION 1.1.4)
+project(lmcbase VERSION 1.1.5)
 
 add_compile_options(-W)
 
