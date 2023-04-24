@@ -55,10 +55,10 @@ struct SearchStlType
                                        STLType::FORWARD_LIST;
 };
 
-template<bool IsInStl, typename ...Args>
+template<bool, typename ...>
 struct BreakDown;
 
-template<template<typename ...Args> class STL, typename T, typename ...Args>
+template<template<typename ...Args> typename STL, typename T, typename ...Args>
 struct BreakDown<true, STL<T, Args...>>
 {
     using type = T;
@@ -110,13 +110,16 @@ struct IsStl
                                                PushStackType>::type;
     using STLList                   = PushForwardListType;
     constexpr static bool status    = Search<STL_T, STLList>::status;
+    //之所以设置FinalT该类型，是因为考虑std::string这种情况，
+    //因为std::string也是容器类型, std::string = basic_string<char>
+    //所以要过滤这种情况
     using FinalT                    = typename BreakDown<status, STL_T>::type;
 };
 
-template<bool IsStl, typename ...Args>
+template<bool, typename ...>
 struct ReBind;
 
-template<template<typename ...Args> class STL, typename T, 
+template<template<typename ...Args> typename STL, typename T,
          typename ...Args, typename ReplaceType>
 struct ReBind<true, STL<T, Args...>, ReplaceType>
 {
@@ -134,6 +137,9 @@ struct ReBind<false, T1, T2>
 {
     using type = std::list<T2>;
 };
+
+template<typename STL_T, typename NEW_T>
+using STL_NEW_T = typename ReBind<IsStl<STL_T>::status, STL_T, NEW_T>::type;
 
 class CmdLineError : public std::exception {
 public:
@@ -156,7 +162,7 @@ private:
     std::string msg;
 };
 
-template<typename STL_T, typename T, STLType t>
+template<typename, typename, STLType>
 struct STLOperation;
 
 template<typename STL_T, typename T>
@@ -435,7 +441,7 @@ struct STLOperation<STL_T, T, STLType::UNORDERED_SET> :
     }
 };
 
-template<class Target, bool IsNum>
+template<typename Target, bool>
 struct Reader
 {
     Target operator()(const std::string &str)
@@ -444,7 +450,7 @@ struct Reader
     }
 };
 
-template<class Target>
+template<typename Target>
 struct Reader<Target, true>
 {
     Target operator()(const std::string &str)
@@ -462,7 +468,7 @@ struct Reader<Target, true>
     }
 };
 
-template<typename T, typename STL_T_R, typename STLList, bool IsNum>
+template<typename T, typename STL_T_R, typename STLList, bool>
 struct RangeJudge
 {
     bool operator()(T &value, STL_T_R &range)
@@ -476,7 +482,8 @@ struct RangeJudge
             CmdLineError err;
             err << "    value \"" << value << "\" is out of range \n    "
                 << "param range is [ "
-                << STLOperation<STL_T_R, T, stlType>::getTraverseStr(range) << "]";
+                << STLOperation<STL_T_R, T, stlType>::getTraverseStr(range)
+                << "]";
             throw err;
             return false;
         }
@@ -509,7 +516,7 @@ struct RangeJudge<T, STL_T, STLList, true>
     }
 };
 
-template<class STL_T_R, class T, typename STLList, bool IsNum>
+template<typename STL_T_R, typename T, typename STLList, bool>
 struct RangeToStr
 {
     std::string operator()(STL_T_R &range)
@@ -525,7 +532,7 @@ struct RangeToStr
     }
 };
 
-template<class STL_T, class T, typename STLList>
+template<typename STL_T, typename T, typename STLList>
 struct RangeToStr<STL_T, T, STLList, true>
 {
     std::string operator()(STL_T &range)
@@ -567,11 +574,9 @@ private:
     std::string mDescribtion;
 };
 
-template<class STL_T, 
-         class STL_STR = typename ReBind<IsStl<STL_T>::status,
-                                         STL_T, std::string>::type,
-         class STL_T_R = typename ReBind<IsStl<STL_T>::status, STL_T, 
-                                         typename IsStl<STL_T>::FinalT>::type>
+template<typename STL_T,
+         typename STL_STR = STL_NEW_T<STL_T, std::string>,
+         typename STL_T_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
 class ParamWithValue final : public ParamBase
 {
     using T                          = typename IsStl<STL_T>::T;
@@ -612,7 +617,7 @@ protected:
         else
         {
             CmdLineError err;
-            err << "option " << getName()
+            err << "option " << getShortName() << " " << getName()
                 << " error : Only one parameter can be input";
             throw err;
         }
@@ -651,14 +656,12 @@ public:
      * @param range 可选参数,参数范围
      * @return 返回无
      */
-    template<class STL_T = None<int>, 
-             class STL_STR = typename ReBind<IsStl<STL_T>::status,
-                                             STL_T, std::string>::type,
-             class STL_T_R = typename ReBind<IsStl<STL_T>::status, STL_T, 
-                                      typename IsStl<STL_T>::FinalT>::type>
+    template<typename STL_T = None<int>,
+             typename STL_STR = STL_NEW_T<STL_T, std::string>,
+             typename STL_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, STL_STR dep = STL_STR(), 
-             STL_T_R range = STL_T_R())
+             STL_R range = STL_R())
     {
         paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
                                                  shortName, describtion, dep, 
@@ -671,7 +674,7 @@ public:
      * @param t  获取参数信息
      * @return 返回 选项使能 true 否则 false
      */
-    template<class STL_T = None<int>>
+    template<typename STL_T = None<int>>
     bool get(const std::string &name, STL_T &&t = STL_T())
     {
         for (auto &l : paramTable)
