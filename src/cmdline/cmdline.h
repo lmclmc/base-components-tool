@@ -41,6 +41,7 @@ typedef enum class STLType_ : unsigned char
 template<typename T>
 class None{};
 
+//搜索STL容器列表索引
 template<typename ...Args>
 struct SearchStlType
 {
@@ -55,6 +56,7 @@ struct SearchStlType
                                        STLType::FORWARD_LIST;
 };
 
+//容器分解，去除内部类型
 template<bool, typename ...>
 struct BreakDown;
 
@@ -70,6 +72,7 @@ struct BreakDown<IsInStl, T>
     using type = T;
 };
 
+//判断是否为容器
 template<typename STL_T>
 struct IsStl
 {
@@ -110,12 +113,14 @@ struct IsStl
                                                PushStackType>::type;
     using STLList                   = PushForwardListType;
     constexpr static bool status    = Search<STL_T, STLList>::status;
+
     //之所以设置FinalT该类型，是因为考虑std::string这种情况，
     //因为std::string也是容器类型, std::string = basic_string<char>
     //所以要过滤这种情况
     using FinalT                    = typename BreakDown<status, STL_T>::type;
 };
 
+//容器重新绑定
 template<bool, typename ...>
 struct ReBind;
 
@@ -126,18 +131,21 @@ struct ReBind<true, STL<T, Args...>, ReplaceType>
     using type = STL<ReplaceType>;
 };
 
+//如果传入类型参数不是容器，则使用默认容器list
 template<typename T1, typename T2>
 struct ReBind<true, None<T1>, T2>
 {
     using type = std::list<T2>;
 };
 
+//如果传入类型参数不是容器，则使用默认容器list
 template<typename T1, typename T2>
 struct ReBind<false, T1, T2>
 {
     using type = std::list<T2>;
 };
 
+//将新类型绑定到STL_T的容器内部
 template<typename STL_T, typename NEW_T>
 using STL_NEW_T = typename ReBind<IsStl<STL_T>::status, STL_T, NEW_T>::type;
 
@@ -162,6 +170,7 @@ private:
     std::string msg;
 };
 
+//容器接口操作
 template<typename, typename, STLType>
 struct STLOperation;
 
@@ -441,6 +450,7 @@ struct STLOperation<STL_T, T, STLType::UNORDERED_SET> :
     }
 };
 
+//读入字符串，转成指定类型
 template<typename Target, bool>
 struct Reader
 {
@@ -468,6 +478,7 @@ struct Reader<Target, true>
     }
 };
 
+//范围判断
 template<typename T, typename STL_T_R, typename STLList, bool>
 struct RangeJudge
 {
@@ -516,6 +527,7 @@ struct RangeJudge<T, STL_T, STLList, true>
     }
 };
 
+//STL容器数据转换成字符串
 template<typename STL_T_R, typename T, typename STLList, bool>
 struct STLDataToStr
 {
@@ -531,24 +543,6 @@ struct STLDataToStr
         return str;
     }
 };
-
-// struct DepsToStr
-// {
-//     template<typename STL_STR>
-//     std::string operator()(STL_STR &deps)
-//     {
-//         using DepSTLList = typename IsStl<STL_STR>::STLList;
-//         constexpr static STLType depStlType = SearchStlType<STL_STR, DepSTLList>::stlType;
-
-//         if (!STLOperation<STL_STR, std::string, depStlType>::getSize(deps))
-//             return "";
-
-//         std::string str("[ ");
-//         str += STLOperation<STL_STR, std::string, depStlType>::getTraverseStr(deps);
-//         str += "]";
-//         return str;
-//     }
-// };
 
 template<typename STL_T, typename T, typename STLList>
 struct STLDataToStr<STL_T, T, STLList, true>
@@ -593,8 +587,13 @@ private:
     std::string mDescribtion;
 };
 
-template<typename STL_T,
+template<//STL_T是用户定义的数据类型，有可能是容器，但也有可能不是
+         typename STL_T,
+         //STL_STR是选项依赖的数据类型。它是个容器，内部类型使用std::string
+         //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
          typename STL_STR = STL_NEW_T<STL_T, std::string>,
+         //STL_R是参数范围的数据类型。它是个容器,内部类型与用户容器内部类型保持一致
+         //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
          typename STL_T_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
 class ParamWithValue final : public ParamBase
 {
@@ -681,8 +680,13 @@ public:
      * @param range 可选参数,参数范围
      * @return 返回无
      */
-    template<typename STL_T = None<int>,
+    template<//STL_T是用户定义的数据类型，有可能是容器，但也有可能不是
+             typename STL_T = None<int>,
+             //STL_STR是选项依赖的数据类型。它是个容器，内部类型使用std::string
+             //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
              typename STL_STR = STL_NEW_T<STL_T, std::string>,
+             //STL_R是参数范围的数据类型。它是个容器,内部类型与用户容器内部类型保持一致
+             //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
              typename STL_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
     void add(const std::string &shortName, const std::string &name,
              const std::string &describtion, STL_STR dep = STL_STR(), 
@@ -707,8 +711,9 @@ public:
             if ((l->getName() == name || l->getShortName() == name) &&
                  l->getEnable())
             {
-                auto p = std::dynamic_pointer_cast<
-                         ParamWithValue<std::__remove_cvref_t<STL_T>>>(l);
+                //移除STL_T多余的类型修饰信息，const volatile等等。
+                using STL_T_ = std::__remove_cvref_t<STL_T>;
+                auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T_>>(l);
                 t = std::move(p->get());
                 return true;
             }
