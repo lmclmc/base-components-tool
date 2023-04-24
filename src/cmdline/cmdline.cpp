@@ -109,14 +109,21 @@ void CmdLine::showHelp()
     for (auto &l : paramTable)
     {
         std::cout << "    "   << std::left << std::setfill(' ')
-                  << std::setw(10) << l->getShortName()<< ", " 
+                  << std::setw(10) << l->getShortName()<< ", "
                   << std::left << std::setfill(' ') << std::setw(25)
                   << l->getName() << l->getDescription() << std::endl;
-        std::string str = l->getRangeStr();
-        if (!str.empty())
+
+        std::string depStr = l->getDepsStr();
+        if (!depStr.empty())
+            std::cout <<std::left << std::setfill(' ')
+                      << std::setw(41) << " " << "option depends "
+                      << depStr << std::endl;
+
+        std::string rangeStr = l->getRangeStr();
+        if (!rangeStr.empty())
             std::cout <<std::left << std::setfill(' ') 
                       << std::setw(41) << " " << "parameter range is "
-                      << str << std::endl;
+                      << rangeStr << std::endl;
     }
 
     exit(0);

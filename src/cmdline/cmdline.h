@@ -517,7 +517,7 @@ struct RangeJudge<T, STL_T, STLList, true>
 };
 
 template<typename STL_T_R, typename T, typename STLList, bool>
-struct RangeToStr
+struct STLDataToStr
 {
     std::string operator()(STL_T_R &range)
     {
@@ -532,8 +532,26 @@ struct RangeToStr
     }
 };
 
+// struct DepsToStr
+// {
+//     template<typename STL_STR>
+//     std::string operator()(STL_STR &deps)
+//     {
+//         using DepSTLList = typename IsStl<STL_STR>::STLList;
+//         constexpr static STLType depStlType = SearchStlType<STL_STR, DepSTLList>::stlType;
+
+//         if (!STLOperation<STL_STR, std::string, depStlType>::getSize(deps))
+//             return "";
+
+//         std::string str("[ ");
+//         str += STLOperation<STL_STR, std::string, depStlType>::getTraverseStr(deps);
+//         str += "]";
+//         return str;
+//     }
+// };
+
 template<typename STL_T, typename T, typename STLList>
-struct RangeToStr<STL_T, T, STLList, true>
+struct STLDataToStr<STL_T, T, STLList, true>
 {
     std::string operator()(STL_T &range)
     {
@@ -560,6 +578,7 @@ public:
     virtual bool set(const std::string &) = 0;
     virtual void searchDeps(std::set<std::string> &) = 0;
     virtual std::string getRangeStr() = 0;
+    virtual std::string getDepsStr() = 0;
 
     void setEnable(bool);
     bool getEnable();
@@ -626,12 +645,18 @@ protected:
 
     std::string getRangeStr() override
     {
-       return RangeToStr<STL_T_R, FinalT, STLList, isNum>()(range);
+       return STLDataToStr<STL_T_R, FinalT, STLList, isNum>()(range);
     }
 
     void searchDeps(std::set<std::string> &set) override
     {
         return STLOperation<STL_STR, FinalT, stlType>::searchDeps(deps, set);
+    }
+
+    std::string getDepsStr() override
+    {
+        using DepSTLList = typename IsStl<STL_STR>::STLList;
+        return STLDataToStr<STL_STR, std::string, DepSTLList, false>()(deps);
     }
 
 private:
