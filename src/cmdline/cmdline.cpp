@@ -70,6 +70,7 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
 void CmdLine::paramCheck()
 {
     std::string name = "";
+    std::string shortName = "";
     try
     {
         std::set<std::string> enableSet;
@@ -87,6 +88,7 @@ void CmdLine::paramCheck()
             if (l->getEnable())
             {
                 name = l->getName();
+                shortName = l->getShortName();
                 l->searchDeps(enableSet);
             } 
         }
@@ -94,8 +96,8 @@ void CmdLine::paramCheck()
     catch(const std::exception &e)
     {
         std::cout << "options error:" << std::endl;
-        std::string str = std::string("paramter ") + name + 
-                          " depends paramter " + e.what();
+        std::string str = std::string("option ( ") + shortName + " , " + 
+                          name + " ) depends option " + e.what();
         std::cout << str << std::endl;
         std::cout << std::endl;
         showHelp();
