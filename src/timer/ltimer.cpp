@@ -1,7 +1,7 @@
 #include "ltimer.h"
-#include "single/uuid.hpp"
+#include "util/uuid.hpp"
 
-using namespace std;
+using namespace std::chrono;
 
 #define DELAY_TIME (20000)
 
@@ -15,13 +15,15 @@ LTimer::LTimer() : bStatus(false),
 LTimer::~LTimer()
 {
     stopTimer();
-    std::this_thread::sleep_for(std::chrono::microseconds(100));
+    std::this_thread::sleep_for(microseconds(100));
     w = nullptr;
     taskList.clear();
     taskQueue.clear();
 }
 
-uint64_t LTimer::setTimer(int64_t time, const function<void()> &f, int64_t count)
+uint64_t LTimer::setTimer(int64_t time, 
+                          const function<void()> &f, 
+                          int64_t count)
 {
     if (time <= 0)
         return 0;
@@ -62,7 +64,7 @@ void LTimer::startTimer()
 {
     bStatus = true;
 
-    tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+    tvS = system_clock::now().time_since_epoch().count() / 1000;
     tvE = tvS;
 
     task();
@@ -116,11 +118,12 @@ void LTimer::task()
             mutex.unlock();
 
             //为了提高定时精确度，消除任务运行耗时造成的时间损耗，使用该变量。
-            this->tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            this->tvS = system_clock::now().time_since_epoch().count() / 1000;
 
-            std::this_thread::sleep_for(std::chrono::microseconds(this->timeStamp + this->tvE - this->tvS));
+            std::this_thread::sleep_for(microseconds(this->timeStamp + 
+                                                     this->tvE - this->tvS));
 
-            this->tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            this->tvE = system_clock::now().time_since_epoch().count() / 1000;
 
             for (auto &t : this->taskQueue)
             {
@@ -131,7 +134,7 @@ void LTimer::task()
         }
         else
         {
-            std::this_thread::sleep_for(std::chrono::microseconds(DELAY_TIME));
+            std::this_thread::sleep_for(microseconds(DELAY_TIME));
         }
 
         if (!this->bStatus)

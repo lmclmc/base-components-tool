@@ -6,7 +6,7 @@
  */
 
 #ifndef SINGLE_H_
-#define SINGLE_H_
+#define SINGLE_HPP_
 
 #include <mutex>
 #include <unistd.h>

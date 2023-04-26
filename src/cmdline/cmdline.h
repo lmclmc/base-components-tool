@@ -22,7 +22,7 @@
 #include <forward_list>
 #include <unordered_set>
 
-#include "type/type.h"
+#include "util/type.hpp"
 
 namespace lmc
 {

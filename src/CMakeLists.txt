@@ -13,8 +13,6 @@ target_link_libraries(lmcbase pthread)
 
 install(DIRECTORY ${PROJECT_BINARY_DIR}/src/liblmcbase.so DESTINATION 
                   ${PROJECT_BINARY_DIR}/install/lib/)
-install(DIRECTORY single/ DESTINATION 
-                  ${PROJECT_BINARY_DIR}/install/include/single/)
 install(FILES log/log.h DESTINATION 
               ${PROJECT_BINARY_DIR}/install/include/log/)
 install(FILES threadpool/lthread.h DESTINATION 
@@ -25,5 +23,5 @@ install(FILES timer/ltimer.h DESTINATION
               ${PROJECT_BINARY_DIR}/install/include/timer/)
 install(FILES cmdline/cmdline.h DESTINATION 
               ${PROJECT_BINARY_DIR}/install/include/cmdline/)
-install(FILES type/type.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/type/)
+install(DIRECTORY util DESTINATION 
+              ${PROJECT_BINARY_DIR}/install/include/)

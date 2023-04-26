@@ -1,5 +1,5 @@
-#ifndef TYPE_H_
-#define TYPE_H_
+#ifndef TYPE_HPP_
+#define TYPE_HPP_
 
 namespace lmc
 {
@@ -40,7 +40,8 @@ struct Search<TargetType, TypeList<TargetType, Args...>>
 template<typename TargetType, typename HeadType, typename ...Args>
 struct Search<TargetType, TypeList<HeadType, Args...>>
 {
-    constexpr static bool status = Search<TargetType, TypeList<Args...>>::status;
+    constexpr static bool status = Search<TargetType, 
+                                          TypeList<Args...>>::status;
     constexpr static int tmp = Search<TargetType, TypeList<Args...>>::value;
     constexpr static int value = tmp == -1 ? -1 : tmp + 1;
 };

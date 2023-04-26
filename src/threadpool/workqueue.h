@@ -10,7 +10,7 @@
 #define WORKQUEUE_H_
 
 #include "lthread.h"
-#include "single/spinmutex.hpp"
+#include "util/spinmutex.hpp"
 
 #include <future>
 #include <iostream>

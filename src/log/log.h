@@ -4,7 +4,7 @@
 #include <iostream>
 #include <elf.h>
 
-#include "type/type.h"
+#include "util/type.hpp"
 
 #define LOGGER_INFO     (lmc::Logger(LogLevel::info) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
 #define LOGGER_DEBUG    (lmc::Logger(LogLevel::debug) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")

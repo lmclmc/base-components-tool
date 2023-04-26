@@ -13,7 +13,7 @@
 #include <list>
 
 #include "threadpool/workqueue.h"
-#include "single/spinmutex.hpp"
+#include "util/spinmutex.hpp"
 
 using namespace std;
 using namespace lmc;
@@ -90,7 +90,8 @@ private:
 
     bool bStatus;  //是否开启定时器
     int64_t timeStamp; //时间戳
-    int64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，更新为最近的任务的时间。
+    int64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，
+                          //更新为最近的任务的时间。
     int64_t tvS, tvE;
 
     SpinMutex mutex;
