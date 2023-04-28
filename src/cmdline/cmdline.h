@@ -569,9 +569,13 @@ public:
               const std::string &describtion_);
     virtual ~ParamBase() = default;
 
+    //用在在控制台输入的参数，通过该接口输入到选项内部
     virtual bool set(const std::string &) = 0;
+    //判断当前选项的依赖项，是否已经使能开启
     virtual void searchDeps(std::set<std::string> &) = 0;
+    //将当前选项的参数范围转化为字符串
     virtual std::string getRangeStr() = 0;
+    //将当前选项所依赖的选项列表转化为字符串
     virtual std::string getDepsStr() = 0;
 
     void setEnable(bool);
@@ -614,6 +618,7 @@ public:
                    ParamBase(name_, shortName_, describtion_){}
     ~ParamWithValue() = default;
 
+    //获取当前选项的参数列表
     STL_T &get()
     {
         return data;
@@ -623,12 +628,17 @@ protected:
     bool set(const std::string &value) override
     {
         FinalT ret = Reader<FinalT, isNum>()(value);
+
+        //判断参数是否在当前选项的指定参数范围内
         if (!RangeJudge<FinalT, STL_T_R, STLList, isNum>()(ret, range))
             return false;
         
+        //有的选项只需要一个参数即可，用户在控制台输入多于一个的参数将出错。
         if (singleParamStatus)
         {
+            //将控制台的参数输入到当前选项里。
             STLOperation<STL_T, FinalT, stlType>::push(data, ret);
+            //判断当前选项是单参数选项还是多参数选项。
             singleParamStatus = stlType == STLType::SINGLE ? false : true;
         }
         else
