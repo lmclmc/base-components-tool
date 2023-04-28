@@ -25,7 +25,8 @@ using EmptyTypeList = TypeList<>;
 #define PUSH_LONG           PushType<long, PUSH_UNSIGNED_LONG>::type
 #define PUSH_FLOAT          PushType<float, PUSH_LONG>::type
 #define PUSH_DOUBLE         PushType<double, PUSH_FLOAT>::type
-using NumTypeList = PUSH_DOUBLE;
+#define PUSH_UNSIGNED_L_I   PushType<unsigned long long int, PUSH_DOUBLE>::type 
+using NumTypeList = PUSH_UNSIGNED_L_I;
 
 template<typename ...Args>
 struct Search;
