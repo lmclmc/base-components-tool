@@ -597,10 +597,9 @@ template<//STL_T是用户定义的数据类型，有可能是容器，但也有�
          typename STL_T_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
 class ParamWithValue final : public ParamBase
 {
-    using T                          = typename IsStl<STL_T>::T;
     using FinalT                     = typename IsStl<STL_T>::FinalT;
     using STLList                    = typename IsStl<STL_T>::STLList;
-    constexpr static bool isNum      = Search<T, NumTypeList>::status;
+    constexpr static bool isNum      = Search<FinalT, NumTypeList>::status;
     constexpr static STLType stlType = SearchStlType<STL_T, STLList>::stlType;
 
 public:
