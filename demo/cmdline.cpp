@@ -74,10 +74,27 @@ int main(int argc, char *argv[])
                                                    "get unordered_multiset string", 
                                                    {}, 
                                                    {"aaa", "vvv", "bbb", "rrr"});
+    // add specified type of variable.
+    // 1st argument is short name
+    // 2nd argument is long name
+    // 3rd argument is description
+    // 4th argument is depends option
+    // 5th argument is paramter ranage
     cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
                                            "get unordered_multiset int", 
-                                           {}, {44, 99});
+                                           {"-dix"}, {44, 99});
+    // add specified type of variable.
+    // 1st argument is long name
+    // 2nd argument is short name (no short name if '\0' specified)
+    // 3rd argument is description
+    // 4th argument is depends option
     cmd->add("-n", "--none", "get none", {"-s", "-us", "-i"});
+    // add specified type of variable.
+    // 1st argument is long name
+    // 2nd argument is short name (no short name if '\0' specified)
+    // 3rd argument is description
+    // 4th argument is depends option
+    // 5th argument is paramter ranage
     cmd->add<std::string>("-sns", "--singlestring", "get single string", 
                          {"-s", "-us", "-i"}, 
                          {"aaa", "vvv", "bbb", "rrr", "ttt"});
