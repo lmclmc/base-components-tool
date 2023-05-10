@@ -4,35 +4,46 @@
     ./build.sh
 ## cmdline
 ### normal usage
-    // add specified type of variable.
-    // 1st argument is short name
-    // 2nd argument is long name
-    // 3rd argument is description
-    // 4th argument is depends option
-    // 5th argument is paramter ranage
-    cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
-                                           "get unordered_multiset int", 
-                                           {"-dix"}, {44, 99});
-    // add specified type of variable.
-    // 1st argument is long name
-    // 2nd argument is short name (no short name if '\0' specified)
-    // 3rd argument is description
-    // 4th argument is depends option
-    cmd->add("-n", "--none", "get none", {"-s", "-us", "-i"});
-    // add specified type of variable.
-    // 1st argument is long name
-    // 2nd argument is short name (no short name if '\0' specified)
-    // 3rd argument is description
-    // 4th argument is depends option
-    // 5th argument is paramter ranage
-    cmd->add<std::string>("-sns", "--singlestring", "get single string", 
-                         {"-s", "-us", "-i"}, 
-                         {"aaa", "vvv", "bbb", "rrr", "ttt"});
-    //parse paramter argv
-    cmd->parse(false, argc, argv);
-    //get value
-    std::string singleStr;
-    bool ret = cmd->get("--singlestring", singleStr);
+    #include "cmdline/cmdline.h"
+    #include "util/single.hpp"
+    #include "log/log.h"
+
+    int main(int argv, char *argv)
+    {
+        CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
+        // add specified type of variable.
+        // 1st argument is short name
+        // 2nd argument is long name
+        // 3rd argument is description
+        // 4th argument is depends option
+        // 5th argument is paramter ranage
+        cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
+                                            "get unordered_multiset int", 
+                                            {"-dix"}, {44, 99});
+        // add specified type of variable.
+        // 1st argument is long name
+        // 2nd argument is short name (no short name if '\0' specified)
+        // 3rd argument is description
+        // 4th argument is depends option
+        cmd->add("-n", "--none", "get none", {"-s", "-us", "-i"});
+        // add specified type of variable.
+        // 1st argument is long name
+        // 2nd argument is short name (no short name if '\0' specified)
+        // 3rd argument is description
+        // 4th argument is depends option
+        // 5th argument is paramter ranage
+        cmd->add<std::string>("-sns", "--singlestring", "get single string", 
+                            {"-s", "-us", "-i"}, 
+                            {"aaa", "vvv", "bbb", "rrr", "ttt"});
+        //parse paramter argv
+        cmd->parse(false, argc, argv);
+        //get value
+        std::string singleStr;
+        bool ret = cmd->get("--singlestring", singleStr);
+        ...
+        ...
+        ...
+    }
 
 ### cmdline execution results
     ./build/install/demo/cmdline/cmdline 
