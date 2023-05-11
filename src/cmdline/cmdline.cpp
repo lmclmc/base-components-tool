@@ -1,9 +1,7 @@
 #include "cmdline.h"
 
-#include <ios>
 #include <iomanip>
 #include <string.h>
-#include <set>
 
 using namespace lmc;
 
