@@ -5,6 +5,10 @@
 
 using namespace lmc;
 
+#define YELLOW  "\033[33m"
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+
 void CmdLine::parse(bool noParam, int argc, char *argv[])
 {
     cmd = argv[0];
@@ -56,8 +60,8 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
     }
     catch(const std::exception &e)
     {
-        std::cout << "options is invaild:" << std::endl;
-        std::cout << e.what() << std::endl;
+        std::cout << RED << "options is invaild:" << RESET << std::endl;
+        std::cout << YELLOW << e.what() << RESET << std::endl;
         std::cout << std::endl;
         showHelp();
     }
@@ -93,10 +97,10 @@ void CmdLine::paramCheck()
     }
     catch(const std::exception &e)
     {
-        std::cout << "options error:" << std::endl;
+        std::cout << RED  << "options error:" << RESET << std::endl;
         std::string str = std::string("option ( ") + shortName + " , " + 
                           name + " ) depends option " + e.what();
-        std::cout << str << std::endl;
+        std::cout << YELLOW << str << RESET << std::endl;
         std::cout << std::endl;
         showHelp();
     }
