@@ -1,8 +1,16 @@
 #ifndef TYPE_HPP_
 #define TYPE_HPP_
 
+#include <type_traits>
+
 namespace lmc
 {
+template<typename T>
+using RemoveREF = typename std::remove_reference<T>::type;
+
+template<typename T>
+using RemoveCVREF = typename std::remove_cv<RemoveREF<T>>::type;
+
 template<typename ...Args>
 struct TypeList;
 

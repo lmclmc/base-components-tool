@@ -60,13 +60,13 @@ struct SearchStlType
 template<bool, typename ...>
 struct BreakDown;
 
-template<template<typename ...Args> typename STL, typename T, typename ...Args>
+template<template<class ...Args> class STL, class T, class ...Args>
 struct BreakDown<true, STL<T, Args...>>
 {
     using type = T;
 };
 
-template<bool IsInStl, typename T>
+template<bool IsInStl, class T>
 struct BreakDown<IsInStl, T>
 {
     using type = T;
@@ -124,8 +124,8 @@ struct IsStl
 template<bool, typename ...>
 struct ReBind;
 
-template<template<typename ...Args> typename STL, typename T,
-         typename ...Args, typename ReplaceType>
+template<template<class ...Args> class STL, class T,
+         class ...Args, class ReplaceType>
 struct ReBind<true, STL<T, Args...>, ReplaceType>
 {
     using type = STL<ReplaceType>;
@@ -721,7 +721,7 @@ public:
                  l->getEnable())
             {
                 //移除STL_T多余的类型修饰信息，const volatile等等。
-                using STL_T_ = std::__remove_cvref_t<STL_T>;
+                using STL_T_ = RemoveCVREF<STL_T>;
                 auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T_>>(l);
                 t = std::move(p->get());
                 return true;

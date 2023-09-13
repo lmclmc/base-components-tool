@@ -73,7 +73,7 @@ public:
     {
         if (!judgeLevel()) return *this;
 
-        strLog += Trans<Search<std::__remove_cvref_t<T>, 
+        strLog += Trans<Search<lmc::RemoveCVREF<T>, 
                                NumTypeList>::status>()(value, sLogFormat);
         return *this;
     }
