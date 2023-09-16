@@ -723,6 +723,12 @@ public:
                 //移除STL_T多余的类型修饰信息，const volatile等等。
                 using STL_T_ = RemoveCVREF<STL_T>;
                 auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T_>>(l);
+                if (!p)
+                {
+                    std::cout << __PRETTY_FUNCTION__ << std::endl;
+                    std::cout << "STL_T type error" << std::endl;
+                    return false;
+                }
                 t = std::move(p->get());
                 return true;
             }
