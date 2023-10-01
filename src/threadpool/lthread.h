@@ -20,7 +20,7 @@ class Thread
 {
 public:
     Thread();
-    ~Thread();
+    virtual ~Thread();
 
 protected:
     void start();
