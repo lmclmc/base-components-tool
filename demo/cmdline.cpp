@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     cmd->add<std::deque<std::string>>("-ds", "--dstring", "get deque string", 
                                       {}, {"aaa", "vvv", "bbb", "rrr", "ttt"});
     cmd->add<std::deque<int>>("-di", "--dint", "get deque int", {}, {44, 99});
+#if __GNUC__ > 6
     cmd->add<std::queue<std::string>>("-dsss", "--queuestring", 
                                       "get queue string", 
                                       {}, std::queue<std::string>({"aaa", 
@@ -57,12 +58,6 @@ int main(int argc, char *argv[])
                                              "rrr", "ttt"});
     cmd->add<std::forward_list<int>>("-flint", "--forwardlistint", 
                                      "get forward_list int", {}, {44, 99});
-    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", 
-                                         "get multiset string", 
-                                         {}, {"aaa", "vvv", "bbb", 
-                                         "rrr", "ttt"});
-    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get multiset int", 
-                                 {}, {44, 99});
     cmd->add<std::unordered_set<std::string>>("-unstr", "--unorderedsetstring", 
                                               "get unordered_set string", 
                                               {}, {"aaa", "vvv", "bbb", 
@@ -83,6 +78,13 @@ int main(int argc, char *argv[])
     cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
                                            "get unordered_multiset int", 
                                            {"-dix"}, {44, 99});
+#endif
+    cmd->add<std::multiset<std::string>>("-mmstr", "--multisetstring", 
+                                         "get multiset string", 
+                                         {}, {"aaa", "vvv", "bbb", 
+                                         "rrr", "ttt"});
+    cmd->add<std::multiset<int>>("-mmint", "--multisetint", "get multiset int", 
+                                 {}, {44, 99});
     // add specified type of variable.
     // 1st argument is long name
     // 2nd argument is short name (no short name if '\0' specified)
@@ -281,6 +283,47 @@ int main(int argc, char *argv[])
         }
     }
 
+    std::multiset<std::string> strMultiset;
+    ret = cmd->get("--multisetstring", strMultiset);
+    if (ret)
+    {
+        for (auto &v : strMultiset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::multiset<int> intMultiset;
+    ret = cmd->get("--multisetint", intMultiset);
+    if (ret)
+    {
+        for (auto &v : intMultiset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::unordered_set<std::string> strUnorderedset;
+    ret = cmd->get("--unorderedsetstring", strUnorderedset);
+    if (ret)
+    {
+        for (auto &v : strUnorderedset)
+        {
+            LOGGER << v;
+        }
+    }
+
+    std::unordered_set<int> intUnorderedset;
+    ret = cmd->get("--unorderdsetint", intUnorderedset);
+    if (ret)
+    {
+        for (auto &v : intUnorderedset)
+        {
+            LOGGER << v;
+        }
+    }
+#if __GNUC__ > 6
+    
     std::queue<std::string> strQueue;
     ret = cmd->get("--queuestring", strQueue);
     if (ret)
@@ -352,47 +395,7 @@ int main(int argc, char *argv[])
             LOGGER << v;
         }
     }
-
-    std::multiset<std::string> strMultiset;
-    ret = cmd->get("--multisetstring", strMultiset);
-    if (ret)
-    {
-        for (auto &v : strMultiset)
-        {
-            LOGGER << v;
-        }
-    }
-
-    std::multiset<int> intMultiset;
-    ret = cmd->get("--multisetint", intMultiset);
-    if (ret)
-    {
-        for (auto &v : intMultiset)
-        {
-            LOGGER << v;
-        }
-    }
-
-    std::unordered_set<std::string> strUnorderedset;
-    ret = cmd->get("--unorderedsetstring", strUnorderedset);
-    if (ret)
-    {
-        for (auto &v : strUnorderedset)
-        {
-            LOGGER << v;
-        }
-    }
-
-    std::unordered_set<int> intUnorderedset;
-    ret = cmd->get("--unorderdsetint", intUnorderedset);
-    if (ret)
-    {
-        for (auto &v : intUnorderedset)
-        {
-            LOGGER << v;
-        }
-    }
-
+    
     std::unordered_multiset<std::string> strUnorderedmultiset;
     ret = cmd->get("--unorderedmsetstring", strUnorderedmultiset);
     if (ret)
@@ -412,4 +415,5 @@ int main(int argc, char *argv[])
             LOGGER << LogFormat::addr << v;
         }
     }
+#endif
 }
