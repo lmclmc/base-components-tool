@@ -17,11 +17,12 @@
 #include <set>
 #include <vector>
 #include <deque>
+#if __GNUC__ > 6
 #include <queue>
 #include <stack>
 #include <forward_list>
 #include <unordered_set>
-
+#endif
 #include "util/type.hpp"
 
 namespace lmc
@@ -32,10 +33,12 @@ typedef enum class STLType_ : unsigned char
     NONE, //none                                      idx: 0
     VLD, //vector list deque                          idx: 1 2 3
     SET,   //set  multiset                            idx: 4 5
+#if __GNUC__ > 6
     UNORDERED_SET, //unordered_set unordered_multiset idx: 6 7
     QUEUE,  //queue                                   idx: 8
     STACK,  //stack                                   idx: 9
     FORWARD_LIST, //forward_list                      idx: 10
+#endif
 } STLType;
 
 template<typename T>
@@ -50,10 +53,14 @@ struct SearchStlType
                                        value == 0 ? STLType::NONE :
                                        value < 4 ? STLType::VLD : 
                                        value < 6 ? STLType::SET : 
+#if __GNUC__ > 6
                                        value < 8 ? STLType::UNORDERED_SET : 
                                        value == 8 ? STLType::QUEUE : 
                                        value == 9 ? STLType::STACK : 
                                        STLType::FORWARD_LIST;
+#else
+                                       STLType::SET;
+#endif
 };
 
 //容器分解，去除内部类型
@@ -83,11 +90,13 @@ struct IsStl
     using DequeType                 = typename std::deque<T>;
     using SetType                   = typename std::set<T>;
     using MultiSetType              = typename std::multiset<T>;
+#if __GNUC__ > 6
     using UnorderedSetType          = typename std::unordered_set<T>;
     using UnorderedMultiSetType     = typename std::unordered_multiset<T>;
     using QueueType                 = typename std::queue<T>;
     using StackType                 = typename std::stack<T>;
     using ForwardListType           = typename std::forward_list<T>;
+#endif
     using EmptyStl                  = TypeList<>;
     using PushNoneType              = typename PushType<NoneType, 
                                                EmptyStl>::type;
@@ -101,6 +110,7 @@ struct IsStl
                                                PushDequeType>::type;
     using PushMultiSetType          = typename PushType<MultiSetType, 
                                                PushSetType>::type;
+#if __GNUC__ > 6
     using PushUnorderedSetType      = typename PushType<UnorderedSetType, 
                                                PushMultiSetType>::type;
     using PushUnorderedMultiSetType = typename PushType<UnorderedMultiSetType, 
@@ -112,6 +122,9 @@ struct IsStl
     using PushForwardListType       = typename PushType<ForwardListType, 
                                                PushStackType>::type;
     using STLList                   = PushForwardListType;
+#else
+    using STLList                   = PushMultiSetType;
+#endif
     constexpr static bool status    = Search<STL_T, STLList>::status;
 
     //之所以设置FinalT该类型，是因为考虑std::string这种情况，
@@ -277,7 +290,7 @@ struct STLOperation<STL_T, T, STLType::SET> :
         data.insert(t);
     }
 };
-
+#if __GNUC__ > 6
 template<typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::QUEUE> : 
        public STLOperation<STL_T, T, STLType::VLD>
@@ -449,7 +462,7 @@ struct STLOperation<STL_T, T, STLType::UNORDERED_SET> :
         return *(++range.begin());
     }
 };
-
+#endif
 //读入字符串，转成指定类型
 template<typename Target, bool>
 struct Reader

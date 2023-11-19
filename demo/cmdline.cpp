@@ -323,7 +323,6 @@ int main(int argc, char *argv[])
         }
     }
 #if __GNUC__ > 6
-    
     std::queue<std::string> strQueue;
     ret = cmd->get("--queuestring", strQueue);
     if (ret)
