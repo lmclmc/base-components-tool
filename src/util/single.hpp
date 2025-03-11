@@ -54,7 +54,6 @@ public:
     static void destory()
     {
         sEnable = false;
-        sleep(2);
 
         sMutex.lock();
         if (nullptr != instance)

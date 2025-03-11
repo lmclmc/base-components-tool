@@ -130,7 +130,7 @@ void CmdLine::showHelp()
                       << rangeStr << std::endl;
     }
 
-    exit(0);
+    throw CmdLineError() << "cmdline exit";
 }
 
 std::string ParamBase::getDescription()

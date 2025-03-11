@@ -15,9 +15,8 @@
 
 using namespace lmc;
 
-int main(int argc, char *argv[])
+int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 {
-    CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
     cmd->add<std::vector<short>>("-s", "--short", "get short", {}, {33, 55});
     cmd->add<std::vector<unsigned short>>("-us", "--us", "get unsigned short");
     cmd->add<std::vector<int>>("-i", "--int", "get int");
@@ -415,4 +414,20 @@ int main(int argc, char *argv[])
         }
     }
 #endif
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
+    try
+    {
+        return parsecmdline(cmd, argc, argv);
+    }
+    catch(CmdLineError& e)
+    {
+        //std::cerr << e.what() << '\n';
+    }
+    TypeSingle<CmdLine>::destory();
+    return 0;
 }
