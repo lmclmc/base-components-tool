@@ -52,7 +52,7 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
             else
             {
                 if (!pB) 
-                    showHelp();
+                    throw CmdLineError() << "cmdline exit";
 
                 pB->set(argv[i]);
             }
@@ -130,7 +130,7 @@ void CmdLine::showHelp()
                       << rangeStr << std::endl;
     }
 
-    throw CmdLineError() << "cmdline exit";
+    exit(0);
 }
 
 std::string ParamBase::getDescription()
