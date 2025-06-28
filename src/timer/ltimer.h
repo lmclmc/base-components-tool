@@ -84,7 +84,7 @@ private:
     list<TaskNode> taskList;
     list<function<void()>> taskQueue;
 
-    bool bStatus;  //是否开启定时器
+    atomic<bool> bStatus;  //是否开启定时器
     int64_t timeStamp; //时间戳
     int64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，
                           //更新为最近的任务的时间。

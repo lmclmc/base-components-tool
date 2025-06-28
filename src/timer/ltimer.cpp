@@ -60,8 +60,12 @@ void LTimer::clearTimer()
 
 void LTimer::startTimer()
 {
-    bStatus = true;
-
+    bool expect = false;
+    if (!bStatus.compare_exchange_strong(expect, true))
+    {
+        return;
+    }
+    
     tvS = system_clock::now().time_since_epoch().count() / 1000;
     tvE = tvS;
 
@@ -70,7 +74,7 @@ void LTimer::startTimer()
 
 void LTimer::stopTimer()
 {
-    bStatus = false;
+    bStatus.store(false);
 }
 
 void LTimer::task()
