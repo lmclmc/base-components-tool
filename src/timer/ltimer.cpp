@@ -6,11 +6,9 @@ using namespace std::chrono;
 #define DELAY_TIME (20000)
 
 LTimer::LTimer() : bStatus(false),
-                   w(make_shared<WorkQueue>(MutexType::None)),
                    timeStamp(0),
-                   tmpTimeStamp(1000000)
-{
-}
+                   tmpTimeStamp(1000000),
+                   w(make_shared<WorkQueue>(MutexType::None)) {}
 
 LTimer::~LTimer()
 {

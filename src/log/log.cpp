@@ -38,6 +38,8 @@ Logger::Logger(const LogLevel &level) :
         case LogLevel::error:
             logLevelStr = "error";
             break;
+        default:
+            break;
         }
         strLog += logLevelStr;
         strLog += "  ";

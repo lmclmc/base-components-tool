@@ -164,7 +164,7 @@ using STL_NEW_T = typename ReBind<IsStl<STL_T>::status, STL_T, NEW_T>::type;
 
 class CmdLineError : public std::exception {
 public:
-    CmdLineError(const std::string &msg = ""): msg(msg){}
+    CmdLineError(const std::string &cmdMsg = ""): msg(cmdMsg){}
     ~CmdLineError() throw() {}
     const char *what() const throw() { return msg.c_str(); }
     CmdLineError &operator << (std::string str)
@@ -190,7 +190,11 @@ struct STLOperation;
 template<typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::NONE>
 {
-    static void push(STL_T &data, T &t){}
+    static void push(STL_T &data, T &t)
+    {
+        (void)data;
+        (void)t;
+    }
 
     static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
     {
@@ -227,7 +231,7 @@ template<typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::VLD> :
        public STLOperation<STL_T, T, STLType::NONE>
 {
-    static int getSize(STL_T &data)
+    static size_t getSize(STL_T &data)
     {
         return data.size();
     }
@@ -303,8 +307,8 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
     static bool traverse(STL_T &range, T &value)
     {
         STL_T tmp = range;
-        int size = tmp.size();
-        for (int i = 0; i < size; i++)
+        size_t size = tmp.size();
+        for (size_t i = 0; i < size; i++)
         {
             if (value == tmp.front())
                 return true;
@@ -318,8 +322,8 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
     static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
     {
         STL_T tmp = deps;
-        int size = tmp.size();
-        for (int i = 0; i < size; i++)
+        size_t size = tmp.size();
+        for (size_t i = 0; i < size; i++)
         {
             if (set.find(tmp.front()) == set.end())
             {
@@ -338,8 +342,8 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
     {
         std::string str;
         STL_T tmp = range;
-        int size = tmp.size();
-        for (int i = 0; i < size; i++)
+        size_t size = tmp.size();
+        for (size_t i = 0; i < size; i++)
         {
             str += tmp.front();
             str += ' ';
@@ -369,8 +373,8 @@ struct STLOperation<STL_T, T, STLType::STACK> :
     static bool traverse(STL_T &range, T &value)
     {
         STL_T tmp = range;
-        int size = tmp.size();
-        for (int i = 0; i < size; i++)
+        size_t size = tmp.size();
+        for (size_t i = 0; i < size; i++)
         {
             if (value == tmp.top())
                 return true;
@@ -384,8 +388,8 @@ struct STLOperation<STL_T, T, STLType::STACK> :
     static void searchDeps(const STL_T &deps, const std::set<std::string> &set)
     {
         STL_T tmp = deps;
-        int size = tmp.size();
-        for (int i = 0; i < size; i++)
+        size_t size = tmp.size();
+        for (size_t i = 0; i < size; i++)
         {
             if (set.find(tmp.top()) == set.end())
             {
@@ -404,8 +408,8 @@ struct STLOperation<STL_T, T, STLType::STACK> :
     {
         std::string str;
         STL_T tmp = range;
-        int size = tmp.size();
-        for (int i = 0; i < size; i++)
+        size_t size = tmp.size();
+        for (size_t i = 0; i < size; i++)
         {
             str += tmp.top();
             str += ' ';
@@ -439,7 +443,7 @@ struct STLOperation<STL_T, T, STLType::FORWARD_LIST> :
 
     static int getSize(STL_T &data)
     {
-        return std::distance(std::begin(data), std::end(data));
+        return static_cast<int>(std::distance(std::begin(data), std::end(data)));
     }
 
     static T getMax(STL_T &range)
@@ -529,8 +533,8 @@ struct RangeJudge<T, STL_T, STLList, true>
             if (min > value || max < value)
             {
                 CmdLineError err;
-                err << "    value range is " << min << " to "
-                    << max << " , " << value << " is out of range";
+                err << "    value range is " << static_cast<int>(min) << " to "
+                    << static_cast<int>(max) << " , " << static_cast<int>(value) << " is out of range";
                 throw err;
                 return false;
             }
@@ -566,8 +570,8 @@ struct STLDataToStr<STL_T, T, STLList, true>
         if (!STLOperation<STL_T, T, stlType>::getSize(range))
             return "";
 
-        int min = STLOperation<STL_T, T, stlType>::getMin(range);
-        int max = STLOperation<STL_T, T, stlType>::getMax(range);
+        int min = static_cast<int>(STLOperation<STL_T, T, stlType>::getMin(range));
+        int max = static_cast<int>(STLOperation<STL_T, T, stlType>::getMax(range));
         return std::string("[") + std::to_string(min) + " , " 
                                 + std::to_string(max) + "]";
 
@@ -625,10 +629,10 @@ public:
                    const std::string &describtion_,
                    const STL_STR &dep_,
                    const STL_T_R &range_) :
-                   range(range_),
-                   deps(dep_),
+                   ParamBase(name_, shortName_, describtion_),
                    singleParamStatus(true),
-                   ParamBase(name_, shortName_, describtion_){}
+                   range(range_),
+                   deps(dep_) {}
     ~ParamWithValue() = default;
 
     //获取当前选项的参数列表
@@ -682,9 +686,9 @@ protected:
 
 private:
     bool singleParamStatus;
-    STL_T data;
     STL_T_R range;
     STL_STR deps;
+    STL_T data;
 };
 
 class CmdLine

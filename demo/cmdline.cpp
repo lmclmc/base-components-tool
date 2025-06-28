@@ -326,8 +326,8 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
     ret = cmd->get("--queuestring", strQueue);
     if (ret)
     {
-        int size = strQueue.size();
-        for (int i = 0; i < size; i++)
+        size_t size = strQueue.size();
+        for (size_t i = 0; i < size; i++)
         {
             auto s = strQueue.front();
             LOGGER << s;
@@ -339,8 +339,8 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
     ret = cmd->get("--queueint", intQueue);
     if (ret)
     {
-        int size = intQueue.size();
-        for (int i = 0; i < size; i++)
+        size_t size = intQueue.size();
+        for (size_t i = 0; i < size; i++)
         {
             auto s = intQueue.front();
             LOGGER << s;
@@ -352,8 +352,8 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
     ret = cmd->get("--stackstring", strStack);
     if (ret)
     {
-        int size = strStack.size();
-        for (int i = 0; i < size; i++)
+        size_t size = strStack.size();
+        for (size_t i = 0; i < size; i++)
         {
             auto s = strStack.top();
             LOGGER << s;
@@ -365,8 +365,8 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
     ret = cmd->get("--stackint", intStack);
     if (ret)
     {
-        int size = intStack.size();
-        for (int i = 0; i < size; i++)
+        size_t size = intStack.size();
+        for (size_t i = 0; i < size; i++)
         {
             auto s = intStack.top();
             LOGGER << s;

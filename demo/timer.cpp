@@ -27,50 +27,50 @@ int main(int argc, char *argv[])
          uint64_t timer100 = t->setTimer(100, [] {
             static uint64_t tvS = 0;
             static uint64_t tvE = 0;
-            tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvS =static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             usleep(70000);
             cout << "100ms delay test " << (tvS - tvE)/1000 << endl;
-            tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvE =static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
         });
 
         t->setTimer(1000, [] {
             static uint64_t tvS = 0;
             static uint64_t tvE = 0;
-            tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvS =static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             cout << "1000ms delay test " << (tvS - tvE)/1000 << endl;
-            tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvE =static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
         });
 
         uint64_t timer300 = t->setTimer(300, [] {
                 static uint64_t tvS = 0;
                 static uint64_t tvE = 0;
-                tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+                tvS = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
                 cout << "300ms delay test " << (tvS - tvE)/1000 << endl;
-                tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+                tvE = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             });
 
         t->setTimer(700, [] {
             static uint64_t tvS = 0;
             static uint64_t tvE = 0;
-            tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvS = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             cout << "700ms delay test " << (tvS - tvE)/1000 << endl;
-            tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvE = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
         });
 
         t->setTimer(1500, [] {
             static uint64_t tvS = 0;
             static uint64_t tvE = 0;
-            tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvS = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             cout << "1500ms delay test " << (tvS - tvE)/1000 << endl;
-            tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvE = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
         });
 
         t->setTimer(30000, [] {
         static uint64_t tvS = 0;
             static uint64_t tvE = 0;
-            tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvS = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             cout << "3000ms delay test " << (tvS - tvE)/1000 << endl;
-            tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+            tvE = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
         });
 
         sleep(10);
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     else
     {
         std::list<int> sList;
-        bool ret = cmdline->get("--add", sList);
+        ret = cmdline->get("--add", sList);
         if (!ret)
             exit(0);
 
@@ -93,17 +93,17 @@ int main(int argc, char *argv[])
             t->setTimer(l, [l] {
                 static uint64_t tvS = 0;
                 static uint64_t tvE = 0;
-                tvS = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+                tvS = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
 
                 cout << l <<"ms delay test " << (tvS - tvE)/1000 << endl;
-                tvE = std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+                tvE = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
             });
         }
         int time;
         ret = cmdline->get("--clear", time);
         if (ret)
         {
-            usleep(time * 1000);
+            usleep(static_cast<__useconds_t>(time) * 1000);
             t->clearTimer();
         }
     }
