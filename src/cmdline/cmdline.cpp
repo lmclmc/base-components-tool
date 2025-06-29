@@ -9,8 +9,7 @@ using namespace lmc;
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
 
-void CmdLine::parse(bool noParam, int argc, char *argv[])
-{
+void CmdLine::parse(bool noParam, int argc, char *argv[]) {
     cmd = argv[0];
     add("-h", "--help", "print help message");
 
@@ -19,22 +18,17 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
 
     std::shared_ptr<ParamBase> pB = nullptr;
     bool bSearch = false;
-    try
-    {
-        for (int i = 1; i < argc; i++)
-        {
+    try {
+        for (int i = 1; i < argc; i++) {
             bSearch = false;
-            if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1))
-            {
+            if (!strncmp(argv[i], "--", 2) || !strncmp(argv[i], "-", 1)) {
                 if ((!strncmp(argv[i], "--help", 6) && strlen(argv[i]) == 6) ||
                     (!strncmp(argv[i], "-h", 2) && strlen(argv[i]) == 2))
                     showHelp();
 
-                for (auto &l : paramTable)
-                {
+                for (auto &l : paramTable) {
                     if (l->getName() == argv[i] || 
-                        l->getShortName() == argv[i])
-                    {
+                        l->getShortName() == argv[i]) {
                         bSearch = true;
                         l->setEnable(true);
                         pB = l;
@@ -42,24 +36,19 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
                     }
                 }
 
-                if (!bSearch)
-                {
+                if (!bSearch) {
                     CmdLineError err;
                     err << "    " << argv[i];
                     throw err;
                 }
-            }
-            else
-            {
+            } else {
                 if (!pB) 
                     throw CmdLineError() << "cmdline exit";
 
                 pB->set(argv[i]);
             }
         }
-    }
-    catch(const std::exception &e)
-    {
+    } catch(const std::exception &e) {
         std::cout << RED << "options is invaild:" << RESET << std::endl;
         std::cout << YELLOW << e.what() << RESET << std::endl;
         std::cout << std::endl;
@@ -69,34 +58,26 @@ void CmdLine::parse(bool noParam, int argc, char *argv[])
     paramCheck();
 }
 
-void CmdLine::paramCheck()
-{
+void CmdLine::paramCheck() {
     std::string name = "";
     std::string shortName = "";
-    try
-    {
+    try {
         std::set<std::string> enableSet;
-        for (auto &l : paramTable)
-        {
-            if (l->getEnable())
-            {
+        for (auto &l : paramTable) {
+            if (l->getEnable()) {
                 enableSet.emplace(l->getName());
                 enableSet.emplace(l->getShortName());
             }
         }
 
-        for (auto &l : paramTable)
-        {
-            if (l->getEnable())
-            {
+        for (auto &l : paramTable) {
+            if (l->getEnable()) {
                 name = l->getName();
                 shortName = l->getShortName();
                 l->searchDeps(enableSet);
             } 
         }
-    }
-    catch(const std::exception &e)
-    {
+    } catch(const std::exception &e) {
         std::cout << RED  << "options error:" << RESET << std::endl;
         std::string str = std::string("option ( ") + shortName + " , " + 
                           name + " ) depends option " + e.what();
@@ -106,12 +87,10 @@ void CmdLine::paramCheck()
     }
 }
 
-void CmdLine::showHelp()
-{
+void CmdLine::showHelp() {
     std::cout << "usage: " << cmd << " [options] ..." << std::endl;
     std::cout << "options:" << std::endl;
-    for (auto &l : paramTable)
-    {
+    for (auto &l : paramTable) {
         std::cout << "    "   << std::left << std::setfill(' ')
                   << std::setw(10) << l->getShortName()<< ", "
                   << std::left << std::setfill(' ') << std::setw(25)
@@ -133,30 +112,25 @@ void CmdLine::showHelp()
     exit(0);
 }
 
-std::string ParamBase::getDescription()
-{
+std::string ParamBase::getDescription() {
     return mDescribtion;
 }
 
-std::string ParamBase::getName()
-{
+std::string ParamBase::getName() {
     return mName;
 }
 
-std::string ParamBase::getShortName()
-{
+std::string ParamBase::getShortName() {
     return mShortName;
 }
 
-void ParamBase::setEnable(bool enable)
-{
+void ParamBase::setEnable(bool enable) {
     mEnable = enable;
 }
 
- bool ParamBase::getEnable()
- {
+bool ParamBase::getEnable(){
     return mEnable;
- }
+}
 
 ParamBase::ParamBase(const std::string &name_,
                      const std::string &shortName_,

@@ -15,8 +15,7 @@
 
 using namespace lmc;
 
-int parsecmdline(CmdLine *cmd, int argc, char *argv[])
-{
+int parsecmdline(CmdLine *cmd, int argc, char *argv[]) {
     cmd->add<std::vector<short>>("-s", "--short", "get short", {}, {33, 55});
     cmd->add<std::vector<unsigned short>>("-us", "--us", "get unsigned short");
     cmd->add<std::vector<int>>("-i", "--int", "get int");
@@ -110,42 +109,36 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
     Logger::setLevel(LogLevel::all);
 
     bool ret = cmd->get("--none");
-    if (ret)
-    {
+    if (ret) {
         LOGGER << "--none enable";
     }
 
     ret = cmd->get("--version");
-    if (ret)
-    {
+    if (ret) {
         LOGGER << "version: " << PROJECT_VERSION;
     }
 
     std::string singleStr;
     ret = cmd->get("--singlestring", singleStr);
-    if (ret)
-    {
+    if (ret) {
         LOGGER << singleStr;
     }
 
     int singleInt1;
     ret = cmd->get("--singleint1", singleInt1);
-    if (ret)
-    {
+    if (ret) {
         LOGGER << singleInt1;
     }
 
     int singleInt2;
     ret = cmd->get("--singleint2", singleInt2);
-    if (ret)
-    {
+    if (ret) {
         LOGGER << singleInt2;
     }
 
     std::vector<short> sVector;
     ret = cmd->get("--short", sVector);
-    if (ret)
-    {
+    if (ret) {
         for (auto &v : sVector)
         {
             LOGGER << v;
@@ -154,8 +147,7 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 
     std::vector<unsigned short> usVector;
     ret = cmd->get("--us", usVector);
-    if (ret)
-    {
+    if (ret) {
         for (auto &v : usVector)
         {
             LOGGER << v;
@@ -164,171 +156,137 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 
     std::vector<unsigned int> uiVector;
     ret = cmd->get("--ui", uiVector);
-    if (ret)
-    {
-        for (auto &v : uiVector)
-        {
+    if (ret) {
+        for (auto &v : uiVector) {
             LOGGER << v;
         }
     }
 
     std::vector<int> iVector;
     ret = cmd->get("--int", iVector);
-    if (ret)
-    {
-        for (auto &v : iVector)
-        {
+    if (ret) {
+        for (auto &v : iVector) {
             LOGGER << v;
         }
     }
 
     std::vector<float> fVector;
     ret = cmd->get("--float", fVector);
-    if (ret)
-    {
-        for (auto &v : fVector)
-        {
+    if (ret) {
+        for (auto &v : fVector) {
             LOGGER << v;
         }
     }
 
     std::vector<double> dVector;
     ret = cmd->get("--double", dVector);
-    if (ret)
-    {
-        for (auto &v : dVector)
-        {
+    if (ret) {
+        for (auto &v : dVector) {
             LOGGER << v;
         }
     }
 
     std::vector<long> lVector;
     ret = cmd->get("--long", lVector);
-    if (ret)
-    {
-        for (auto &v : lVector)
-        {
+    if (ret) {
+        for (auto &v : lVector) {
             LOGGER << v;
         }
     }
 
     std::vector<unsigned long> ulVector;
     ret = cmd->get("--ul", ulVector);
-    if (ret)
-    {
-        for (auto &v : ulVector)
-        {
+    if (ret) {
+        for (auto &v : ulVector) {
             LOGGER << v;
         }
     }
  
     std::vector<std::string> strVector;
     ret = cmd->get("--string", strVector);
-    if (ret)
-    {
-        for (auto &v : strVector)
-        {
+    if (ret) {
+        for (auto &v : strVector) {
             LOGGER << v;
         }
     }
 
     std::list<std::string> strList;
     ret = cmd->get("--lstring", strList);
-    if (ret)
-    {
-        for (auto &v : strList)
-        {
+    if (ret) {
+        for (auto &v : strList) {
             LOGGER << v;
         }
     }
 
     std::set<std::string> strSet;
     ret = cmd->get("--sstring", strSet);
-    if (ret)
-    {
-        for (auto &v : strSet)
-        {
+    if (ret) {
+        for (auto &v : strSet) {
             LOGGER << v;
         }
     }
 
     std::set<int> intSet;
     ret = cmd->get("--sint", intSet);
-    if (ret)
-    {
-        for (auto &v : intSet)
-        {
+    if (ret) {
+        for (auto &v : intSet) {
             LOGGER << v;
         }
     }
 
     std::deque<std::string> strDeque;
     ret = cmd->get("--dstring", strDeque);
-    if (ret)
-    {
-        for (auto &v : strDeque)
-        {
+    if (ret) {
+        for (auto &v : strDeque) {
             LOGGER << v;
         }
     }
 
     std::deque<int> intDeque;
     ret = cmd->get("--dint", intDeque);
-    if (ret)
-    {
-        for (auto &v : intDeque)
-        {
+    if (ret) {
+        for (auto &v : intDeque) {
             LOGGER << v;
         }
     }
 
     std::multiset<std::string> strMultiset;
     ret = cmd->get("--multisetstring", strMultiset);
-    if (ret)
-    {
-        for (auto &v : strMultiset)
-        {
+    if (ret) {
+        for (auto &v : strMultiset) {
             LOGGER << v;
         }
     }
 
     std::multiset<int> intMultiset;
     ret = cmd->get("--multisetint", intMultiset);
-    if (ret)
-    {
-        for (auto &v : intMultiset)
-        {
+    if (ret) {
+        for (auto &v : intMultiset) {
             LOGGER << v;
         }
     }
 
     std::unordered_set<std::string> strUnorderedset;
     ret = cmd->get("--unorderedsetstring", strUnorderedset);
-    if (ret)
-    {
-        for (auto &v : strUnorderedset)
-        {
+    if (ret) {
+        for (auto &v : strUnorderedset) {
             LOGGER << v;
         }
     }
 
     std::unordered_set<int> intUnorderedset;
     ret = cmd->get("--unorderdsetint", intUnorderedset);
-    if (ret)
-    {
-        for (auto &v : intUnorderedset)
-        {
+    if (ret) {
+        for (auto &v : intUnorderedset) {
             LOGGER << v;
         }
     }
 #if __GNUC__ > 6
     std::queue<std::string> strQueue;
     ret = cmd->get("--queuestring", strQueue);
-    if (ret)
-    {
+    if (ret) {
         size_t size = strQueue.size();
-        for (size_t i = 0; i < size; i++)
-        {
+        for (size_t i = 0; i < size; i++) {
             auto s = strQueue.front();
             LOGGER << s;
             strQueue.pop();
@@ -337,11 +295,9 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 
     std::queue<int> intQueue;
     ret = cmd->get("--queueint", intQueue);
-    if (ret)
-    {
+    if (ret) {
         size_t size = intQueue.size();
-        for (size_t i = 0; i < size; i++)
-        {
+        for (size_t i = 0; i < size; i++) {
             auto s = intQueue.front();
             LOGGER << s;
             intQueue.pop();
@@ -350,11 +306,9 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 
     std::stack<std::string> strStack;
     ret = cmd->get("--stackstring", strStack);
-    if (ret)
-    {
+    if (ret) {
         size_t size = strStack.size();
-        for (size_t i = 0; i < size; i++)
-        {
+        for (size_t i = 0; i < size; i++) {
             auto s = strStack.top();
             LOGGER << s;
             strStack.pop();
@@ -363,8 +317,7 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 
     std::stack<int> intStack;
     ret = cmd->get("--stackint", intStack);
-    if (ret)
-    {
+    if (ret) {
         size_t size = intStack.size();
         for (size_t i = 0; i < size; i++)
         {
@@ -376,40 +329,32 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
 
     std::forward_list<std::string> strForwardList;
     ret = cmd->get("--forwardliststring", strForwardList);
-    if (ret)
-    {
-        for (auto &v : strForwardList)
-        {
+    if (ret) {
+        for (auto &v : strForwardList) {
             LOGGER << v;
         }
     }
 
     std::forward_list<int> intForwardList;
     ret = cmd->get("--forwardlistint", intForwardList);
-    if (ret)
-    {
-        for (auto &v : intForwardList)
-        {
+    if (ret) {
+        for (auto &v : intForwardList) {
             LOGGER << v;
         }
     }
     
     std::unordered_multiset<std::string> strUnorderedmultiset;
     ret = cmd->get("--unorderedmsetstring", strUnorderedmultiset);
-    if (ret)
-    {
-        for (auto &v : strUnorderedmultiset)
-        {
+    if (ret) {
+        for (auto &v : strUnorderedmultiset) {
             LOGGER << v;
         }
     }
 
     std::unordered_multiset<int> intUnorderedmultiset;
     ret = cmd->get("--unorderdmsetint", intUnorderedmultiset);
-    if (ret)
-    {
-        for (auto &v : intUnorderedmultiset)
-        {
+    if (ret) {
+        for (auto &v : intUnorderedmultiset) {
             LOGGER << LogFormat::addr << v;
         }
     }
@@ -417,15 +362,11 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[])
     return 0;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
-    try
-    {
+    try {
         return parsecmdline(cmd, argc, argv);
-    }
-    catch(CmdLineError& e)
-    {
+    } catch(CmdLineError& e) {
         //std::cerr << e.what() << '\n';
     }
     TypeSingle<CmdLine>::destory();

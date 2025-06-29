@@ -17,15 +17,12 @@ LogFormat Logger::sLogFormat = LogFormat::num;
 int Logger::sOutputFd = 0;
 
 Logger::Logger(const LogLevel &level) :
-    mLevel(level)
-{      
+    mLevel(level) {
     if (!judgeLevel()) return;
 
-    if (mLevel != LogLevel::print)
-    {
+    if (mLevel != LogLevel::print) {
         std::string logLevelStr = "";
-        switch (mLevel)
-        {
+        switch (mLevel) {
         case LogLevel::info:
             logLevelStr = "info";
             break;
@@ -56,62 +53,51 @@ Logger::Logger(const LogLevel &level) :
     }  
 }
 
-Logger::~Logger()
-{
+Logger::~Logger() {
     if (!judgeLevel()) return;
 
     if (sOutputFile.empty())
         std::cout << strLog << std::endl;
-    else if (!sOutputFd)
-    {
+    else if (!sOutputFd) {
         sOutputFd = open(sOutputFile.c_str(), O_CREAT | O_APPEND | O_RDWR, 0666);
         if (sOutputFd == -1)
             return;
         strLog += "\n";
         if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
             std::cout << "write : error " << strerror(errno) << std::endl;
-    }
-    else
-    {
+    } else {
         strLog += "\n";
         if (write(sOutputFd, strLog.c_str(), strLog.size()) == -1)
             std::cout << "write : error " << strerror(errno) << std::endl;
     } 
 }
 
-Logger &Logger::operator << (LogFormat logFormat)
-{
+Logger &Logger::operator << (LogFormat logFormat) {
     if (!judgeLevel()) return *this;
     sLogFormat = logFormat;
     return *this;
 }
 
-bool Logger::judgeLevel()
-{
-    if (mLevel <= sLevel)
-    {
+bool Logger::judgeLevel() {
+    if (mLevel <= sLevel) {
         return true;
     }
 
     return false;
 }
 
-std::string Logger::getString()
-{
+std::string Logger::getString() {
     return strLog;
 }
 
-void Logger::setOutputFile(const std::string &file)
-{
+void Logger::setOutputFile(const std::string &file) {
     sOutputFile = file;
 }
 
-void Logger::setLevel(LogLevel level)
-{
+void Logger::setLevel(LogLevel level) {
     sLevel = level;
 }
 
-LogLevel Logger::getLevel()
-{
+LogLevel Logger::getLevel() {
     return sLevel;
 }

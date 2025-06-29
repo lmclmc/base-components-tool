@@ -3,27 +3,19 @@
 
 #include <atomic>
 
-namespace lmc
-{
-class SpinMutex
-{
-
+namespace lmc {
+class SpinMutex {
 public:
-    SpinMutex() : flag_(false)
-    {
-    }
+    SpinMutex() : flag_(false) {}
 
-    void lock()
-    {
+    void lock() {
         bool expect = false;
-        while (!flag_.compare_exchange_weak(expect, true))
-        {
+        while (!flag_.compare_exchange_weak(expect, true)) {
             expect = false;
         }
     }
 
-    void unlock()
-    {
+    void unlock() {
         flag_.store(false);
     }
 

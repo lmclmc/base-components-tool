@@ -2,20 +2,17 @@
 
 using namespace lmc;
 
-void SMutex::setMutexType(MutexType m)
-{
+void SMutex::setMutexType(MutexType m) {
     mMutexType = m;
 }
 
-void SMutex::lock()
-{
-    switch (mMutexType)
-    {
+void SMutex::lock() {
+    switch (mMutexType) {
         case MutexType::Mutex:
-        mMutex.lock();
+            mMutex.lock();
         break;
         case MutexType::Spin:
-        mSpinMutex.lock();
+            mSpinMutex.lock();
         break;
         case MutexType::None:
         return;
@@ -23,15 +20,13 @@ void SMutex::lock()
     }
 }
 
-void SMutex::unlock()
-{
-    switch (mMutexType)
-    {
+void SMutex::unlock() {
+    switch (mMutexType){
         case MutexType::Mutex:
-        mMutex.unlock();
+            mMutex.unlock();
         break;
         case MutexType::Spin:
-        mSpinMutex.unlock();
+            mSpinMutex.unlock();
         break;
         case MutexType::None:
         return;
@@ -39,25 +34,21 @@ void SMutex::unlock()
     }
 }
 
-WorkQueue::WorkQueue(MutexType m)
-{
+WorkQueue::WorkQueue(MutexType m) {
     mutex.setMutexType(m);
     start();
 }
 
-WorkQueue::~WorkQueue()
-{
+WorkQueue::~WorkQueue() {
     mutex.lock();
     while (!workqueue.empty()) 
         workqueue.pop();
     mutex.unlock();
 }
 
-void WorkQueue::run()
-{
+void WorkQueue::run() {
     mutex.lock();
-    if (workqueue.empty())
-    {
+    if (workqueue.empty()) {
         mutex.unlock();
         return;
     }

@@ -14,8 +14,7 @@
 
 #define BUFFER_SIZE (128)
 
-typedef enum class LogLevel_: unsigned char
-{
+typedef enum class LogLevel_: unsigned char {
     close,
     print,
     info,
@@ -23,54 +22,43 @@ typedef enum class LogLevel_: unsigned char
     debug,
     error,
     all
-}LogLevel;
+} LogLevel;
 
-typedef enum class LogFormat_: unsigned char
-{
+typedef enum class LogFormat_: unsigned char {
     num,
     addr
-}LogFormat;
+} LogFormat;
 
-namespace lmc
-{
+namespace lmc {
 template<bool IsNum>
-struct Trans
-{
+struct Trans {
     template<typename T>
-    std::string operator()(const T &value, LogFormat)
-    {
+    std::string operator()(const T &value, LogFormat) {
         return value;
     }
 };
 
 template<>
-struct Trans<true>
-{
+struct Trans<true> {
     template<typename T>
-    std::string operator()(const T &value, LogFormat format)
-    {
-        if (format == LogFormat::addr)
-        {
+    std::string operator()(const T &value, LogFormat format) {
+        if (format == LogFormat::addr) {
             char buffer[BUFFER_SIZE] = {0};
             snprintf(buffer, BUFFER_SIZE, "0x%lx", (long unsigned int)value);
             return buffer;
-        }
-        else
-        {
+        } else {
             return std::to_string(value);
         }
     }
 };
 
-class Logger
-{
+class Logger {
 public:
     Logger(const LogLevel &level);
     ~Logger();
 
     template<typename T>
-    Logger &operator << (const T &value)
-    {
+    Logger &operator << (const T &value) {
         if (!judgeLevel()) return *this;
 
         strLog += Trans<Search<lmc::RemoveCVREF<T>, 

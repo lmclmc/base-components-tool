@@ -10,8 +10,7 @@ LTimer::LTimer() : bStatus(false),
                    tmpTimeStamp(DELAY_TIME),
                    w(make_shared<WorkQueue>(MutexType::None)) {}
 
-LTimer::~LTimer()
-{
+LTimer::~LTimer() {
     mutex.lock();
     taskList.clear();
     taskQueue.clear();
@@ -22,8 +21,7 @@ LTimer::~LTimer()
 
 uint64_t LTimer::setTimer(int64_t time, 
                           const function<void()> &f, 
-                          int64_t count)
-{
+                          int64_t count) {
     if (time <= 0)
         return 0;
         
@@ -35,17 +33,13 @@ uint64_t LTimer::setTimer(int64_t time,
     return uuid;
 }
 
-void LTimer::removeTimer(uint64_t uuid)
-{
+void LTimer::removeTimer(uint64_t uuid) {
     mutex.lock();
-    for (auto it = taskList.begin(); it != taskList.end();)
-    {
-        if (it->uuid == uuid)
-        {
+    for (auto it = taskList.begin(); it != taskList.end();) {
+        if (it->uuid == uuid) {
             it = taskList.erase(it);
         }
-        else
-        {
+        else {
             it++;
         }
     }
@@ -53,19 +47,16 @@ void LTimer::removeTimer(uint64_t uuid)
     mutex.unlock();
 }
 
-void LTimer::clearTimer()
-{
+void LTimer::clearTimer() {
     mutex.lock();
     taskList.clear();
     tmpTimeStamp = DELAY_TIME;
     mutex.unlock();
 }
 
-void LTimer::startTimer()
-{
+void LTimer::startTimer() {
     bool expect = false;
-    if (!bStatus.compare_exchange_strong(expect, true))
-    {
+    if (!bStatus.compare_exchange_strong(expect, true)) {
         return;
     }
     
@@ -75,13 +66,11 @@ void LTimer::startTimer()
     task();
 }
 
-void LTimer::stopTimer()
-{
+void LTimer::stopTimer() {
     bStatus.store(false);
 }
 
-void LTimer::task()
-{
+void LTimer::task() {
     w->addTask([this] {
         mutex.lock();
         static int64_t lastMinStamp = this->tmpTimeStamp;
@@ -90,12 +79,10 @@ void LTimer::task()
 
         //更新所有任务的准备时间
         for (auto it = this->taskList.begin();
-                it != this->taskList.end();)
-        {
+                it != this->taskList.end();) {
             it->time -= this->timeStamp;
 
-            if (it->time <= 0)
-            {
+            if (it->time <= 0) {
                 if (it->count > 0)
                     it->count--;
                 //当准备时间小于0时，将任务加入到就绪队列里面
@@ -107,17 +94,15 @@ void LTimer::task()
             if (it->time < lastMinStamp)
                 lastMinStamp = it->time;
 
-            if (it->count == 0)
-            {
+            if (it->count == 0) {
                 //当计数为0时，移除该任务。
                 it = this->taskList.erase(it);
             }
-            else
-            {
+            else {
                 it++;
             }
         }
-
+        //当没有定时器任务时，将临时延迟时间戳置为DELAY_TIME
         if (this->taskList.size() == 0) {
             tmpTimeStamp = DELAY_TIME;
         }
@@ -132,8 +117,7 @@ void LTimer::task()
 
         this->tvE = system_clock::now().time_since_epoch().count() / 1000;
 
-        for (auto &t : this->taskQueue)
-        {
+        for (auto &t : this->taskQueue) {
             t();
         }
 

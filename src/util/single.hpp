@@ -11,20 +11,15 @@
 #include <mutex>
 #include <unistd.h>
 
-namespace lmc
-{
+namespace lmc {
 template<typename T>
-class TypeSingle
-{
+class TypeSingle {
 public:
     template<typename ...Args>
-    inline static T *getInstance(Args &&...args)
-    {
-        if (nullptr == instance)
-        {
+    inline static T *getInstance(Args &&...args) {
+        if (nullptr == instance) {
             sMutex.lock();
-            if (nullptr == instance)
-            {
+            if (nullptr == instance) {
                 instance = new T(args...);
             }
             sMutex.unlock();
@@ -33,16 +28,10 @@ public:
         return instance;
     }
 
-    inline static T *getInstance()
-    {
-        if (!sEnable)
-            return nullptr;
-
-        if (nullptr == instance)
-        {
+    inline static T *getInstance() {
+        if (nullptr == instance) {
             sMutex.lock();
-            if (nullptr == instance)
-            {
+            if (nullptr == instance) {
                 instance = new T();
             }
             sMutex.unlock();
@@ -51,13 +40,9 @@ public:
         return instance;
     }
 
-    static void destory()
-    {
-        sEnable = false;
-
+    static void destory() {
         sMutex.lock();
-        if (nullptr != instance)
-        {
+        if (nullptr != instance) {
             delete instance;
             instance = nullptr;
         }
@@ -70,7 +55,6 @@ private:
 private:
     static std::mutex sMutex;
     static T *instance;
-    static bool sEnable;
 };
 
 template<typename T>
@@ -78,8 +62,6 @@ std::mutex TypeSingle<T>::sMutex;
 
 template<typename T>
 T *TypeSingle<T>::instance = nullptr;
-
-template<typename T>
-bool TypeSingle<T>::sEnable = true;
 };
+
 #endif

@@ -8,8 +8,7 @@
 using namespace std;
 using namespace lmc;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
 
     cmdline->add<std::list<int>>("-a", "--add", "add timer");
@@ -22,8 +21,7 @@ int main(int argc, char *argv[])
     t->startTimer();
 
     bool ret = cmdline->get("--default");
-    if (ret)
-    {
+    if (ret) {
          uint64_t timer100 = t->setTimer(100, [] {
             static uint64_t tvS = 0;
             static uint64_t tvE = 0;
@@ -80,16 +78,13 @@ int main(int argc, char *argv[])
 
         sleep(10);
         t->clearTimer();
-    }
-    else
-    {
+    } else {
         std::list<int> sList;
         ret = cmdline->get("--add", sList);
         if (!ret)
             exit(0);
 
-        for (auto &l : sList)
-        {
+        for (auto &l : sList) {
             t->setTimer(l, [l] {
                 static uint64_t tvS = 0;
                 static uint64_t tvE = 0;
@@ -101,14 +96,13 @@ int main(int argc, char *argv[])
         }
         int time;
         ret = cmdline->get("--clear", time);
-        if (ret)
-        {
+        if (ret) {
             usleep(static_cast<__useconds_t>(time) * 1000);
             t->clearTimer();
         }
     }
 
-    sleep(1000000000);
+    sleep(10);
     TypeSingle<LTimer>::destory();
     pause();
 

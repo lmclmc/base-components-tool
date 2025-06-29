@@ -21,15 +21,13 @@
 using namespace std;
 
 namespace lmc {
-enum class MutexType: unsigned char
-{
+enum class MutexType: unsigned char {
     None,
     Spin,
     Mutex,
 };
 
-class SMutex
-{
+class SMutex {
 public:
     SMutex() = default;
     void lock();
@@ -55,8 +53,7 @@ public:
      */
     template <typename F, typename ...Args>
     auto addTask(F &&f, Args &&...args) throw() ->
-    future<typename result_of<F(Args...)>::type>
-    {
+    future<typename result_of<F(Args...)>::type> {
         using returnType = typename result_of<F(Args...)>::type;
         auto task = make_shared<packaged_task<returnType()>>(bind(
                                 forward<F>(f), forward<Args>(args)...));
@@ -77,7 +74,6 @@ private:
     queue<function<void()>> workqueue;
     SMutex mutex;
 };
-
 }
 
 #endif

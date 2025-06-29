@@ -18,10 +18,8 @@
 using namespace std;
 using namespace lmc;
 
-namespace lmc
-{
-class LTimer
-{
+namespace lmc {
+class LTimer {
 public:
     LTimer();
 
@@ -62,8 +60,7 @@ private:
     void task();
 
 private:
-    typedef struct TaskNode_
-    {
+    typedef struct TaskNode_ {
         TaskNode_(int64_t time_,
                   int64_t maxTime_,
                   const function<void()> &task_,
@@ -95,6 +92,6 @@ private:
 
     SpinMutex mutex;
 };
-
 }; // namespace lmc
+
 #endif

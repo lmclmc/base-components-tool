@@ -15,9 +15,8 @@
 
 #define SIZE (10000)
 
-namespace lmc{
-class Thread
-{
+namespace lmc {
+class Thread {
 public:
     Thread();
     virtual ~Thread();
