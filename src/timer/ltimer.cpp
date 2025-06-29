@@ -3,20 +3,21 @@
 
 using namespace std::chrono;
 
-#define DELAY_TIME (20000)
+#define DELAY_TIME (100000)
 
 LTimer::LTimer() : bStatus(false),
                    timeStamp(0),
-                   tmpTimeStamp(1000000),
+                   tmpTimeStamp(DELAY_TIME),
                    w(make_shared<WorkQueue>(MutexType::None)) {}
 
 LTimer::~LTimer()
 {
-    stopTimer();
-    std::this_thread::sleep_for(microseconds(100));
-    w = nullptr;
+    mutex.lock();
     taskList.clear();
     taskQueue.clear();
+    mutex.unlock();
+    stopTimer();
+    w = nullptr;
 }
 
 uint64_t LTimer::setTimer(int64_t time, 
@@ -48,6 +49,7 @@ void LTimer::removeTimer(uint64_t uuid)
             it++;
         }
     }
+
     mutex.unlock();
 }
 
@@ -55,6 +57,7 @@ void LTimer::clearTimer()
 {
     mutex.lock();
     taskList.clear();
+    tmpTimeStamp = DELAY_TIME;
     mutex.unlock();
 }
 
@@ -80,64 +83,61 @@ void LTimer::stopTimer()
 void LTimer::task()
 {
     w->addTask([this] {
-        if (this->taskList.size() > 0)
+        mutex.lock();
+        static int64_t lastMinStamp = this->tmpTimeStamp;
+        this->timeStamp = lastMinStamp;
+        lastMinStamp = this->tmpTimeStamp;
+
+        //更新所有任务的准备时间
+        for (auto it = this->taskList.begin();
+                it != this->taskList.end();)
         {
-            mutex.lock();
-            this->timeStamp = this->tmpTimeStamp;
-            this->tmpTimeStamp = 1000000;
+            it->time -= this->timeStamp;
 
-            //更新所有任务的准备时间
-            for (auto it = this->taskList.begin();
-                 it != this->taskList.end();)
+            if (it->time <= 0)
             {
-                it->time -= this->timeStamp;
-
-                if (it->time <= 0)
-                {
-                    if (it->count > 0)
-                        it->count--;
-                    //当准备时间小于0时，将任务加入到就绪队列里面
-                    this->taskQueue.emplace_back(it->task);
-                    it->time = it->maxTime;
-
-                }
-
-                //取所有任务里面最小的准备时间。
-                if (it->time < this->tmpTimeStamp)
-                    this->tmpTimeStamp = it->time;
-
-                if (it->count == 0)
-                {
-                    //当计数为0时，移除该任务。
-                    it = this->taskList.erase(it);
-                }
-                else
-                {
-                    it++;
-                }
+                if (it->count > 0)
+                    it->count--;
+                //当准备时间小于0时，将任务加入到就绪队列里面
+                this->taskQueue.emplace_back(it->task);
+                it->time = it->maxTime;
             }
 
-            mutex.unlock();
+            //取所有任务里面最小的准备时间。
+            if (it->time < lastMinStamp)
+                lastMinStamp = it->time;
 
-            //为了提高定时精确度，消除任务运行耗时造成的时间损耗，使用该变量。
-            this->tvS = system_clock::now().time_since_epoch().count() / 1000;
-
-            std::this_thread::sleep_for(microseconds(this->timeStamp + 
-                                                     this->tvE - this->tvS));
-
-            this->tvE = system_clock::now().time_since_epoch().count() / 1000;
-
-            for (auto &t : this->taskQueue)
+            if (it->count == 0)
             {
-                t();
+                //当计数为0时，移除该任务。
+                it = this->taskList.erase(it);
             }
+            else
+            {
+                it++;
+            }
+        }
 
-            this->taskQueue.clear();
+        if (this->taskList.size() == 0) {
+            tmpTimeStamp = DELAY_TIME;
         }
-        else
+
+        mutex.unlock();
+
+        //为了提高定时精确度，消除任务运行耗时造成的时间损耗，使用该变量。
+        this->tvS = system_clock::now().time_since_epoch().count() / 1000;
+
+        std::this_thread::sleep_for(microseconds(this->timeStamp + 
+                                                 this->tvE - this->tvS));
+
+        this->tvE = system_clock::now().time_since_epoch().count() / 1000;
+
+        for (auto &t : this->taskQueue)
         {
-            std::this_thread::sleep_for(microseconds(DELAY_TIME));
+            t();
         }
+
+        this->taskQueue.clear();
 
         if (!this->bStatus)
             return;

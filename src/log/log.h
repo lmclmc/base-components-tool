@@ -6,10 +6,10 @@
 
 #include "util/type.hpp"
 
-#define LOGGER_INFO     (lmc::Logger(LogLevel::info) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER_DEBUG    (lmc::Logger(LogLevel::debug) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER_ERROR    (lmc::Logger(LogLevel::error) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
-#define LOGGER_WARNING  (lmc::Logger(LogLevel::warning) << " : " << __LINE__ <<  " : " << __FUNCTION__ << " : ")
+#define LOGGER_INFO     (lmc::Logger(LogLevel::info) << " : " << __FILE__ <<  ":" << __LINE__ << " : ")
+#define LOGGER_DEBUG    (lmc::Logger(LogLevel::debug) << " : " << __FILE__ <<  ":" << __LINE__ << " : ")
+#define LOGGER_ERROR    (lmc::Logger(LogLevel::error) << " : " << __FILE__ <<  ":" << __LINE__ << " : ")
+#define LOGGER_WARNING  (lmc::Logger(LogLevel::warning) << " : " << __FILE__ <<  ":" << __LINE__ << " : ")
 #define LOGGER          (lmc::Logger(LogLevel::print))
 
 #define BUFFER_SIZE (128)

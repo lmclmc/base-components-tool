@@ -47,15 +47,21 @@ WorkQueue::WorkQueue(MutexType m)
 
 WorkQueue::~WorkQueue()
 {
+    mutex.lock();
     while (!workqueue.empty()) 
         workqueue.pop();
+    mutex.unlock();
 }
 
 void WorkQueue::run()
 {
-    if (workqueue.empty()) return;
-
     mutex.lock();
+    if (workqueue.empty())
+    {
+        mutex.unlock();
+        return;
+    }
+
     function<void()> f = move(workqueue.front());
     workqueue.pop();
     mutex.unlock();

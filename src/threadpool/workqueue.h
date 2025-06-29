@@ -42,7 +42,7 @@ private:
     MutexType mMutexType;
 };
 
-class WorkQueue final : public Thread{
+class WorkQueue final : public Thread {
 public:
     WorkQueue(MutexType m);
     ~WorkQueue();
