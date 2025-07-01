@@ -1,35 +1,46 @@
 #include "lthread.h"
 
+#include <condition_variable>
+#include <atomic>
+#include <thread>
 #include <mutex>
+
+#define SIZE (10000)
 
 using namespace lmc;
 using namespace std;
 
-Thread::Thread() {
-    bStop = true;
-    cStatus = 0;
+class Thread::Impl {
+public:
+    std::condition_variable c;
+    std::atomic<long> cStatus;
+    std::atomic<bool> bStop;
+    std::thread t;
+};
 
-    t = thread([this] {
+Thread::Thread() : pImpl(std::make_unique<Impl>()) {
+    pImpl->bStop = true;
+    pImpl->cStatus = 0;
+
+    pImpl->t = thread([this] {
         mutex localMutex;
         unique_lock<mutex> localLock(localMutex);
-        while (bStop){
-            c.wait(localLock, [this] {return cStatus?cStatus--:false;});
+        while (pImpl->bStop){
+            pImpl->c.wait(localLock, [this] {
+                return pImpl->cStatus ? pImpl->cStatus-- : false;
+            });
             run();
         }
     });
 }
 
 Thread::~Thread() {
-    destory();
+    pImpl->bStop = false;
+    start();
+    pImpl->t.join();
 }
 
 void Thread::start() {
-    cStatus++;
-    c.notify_one();
-}
-
-void Thread::destory() {
-    bStop = false;
-    start();
-    t.join();
+    pImpl->cStatus++;
+    pImpl->c.notify_one();
 }

@@ -1,77 +1,25 @@
 #include "ltimer.h"
 #include "util/uuid.hpp"
+#include "threadpool/workqueue.h"
+#include "util/spinmutex.hpp"
 
+#include <thread>
+#include <list>
+
+using namespace lmc;
 using namespace std::chrono;
 
 #define DELAY_TIME (100000)
 
-LTimer::LTimer() : bStatus(false),
-                   timeStamp(0),
-                   tmpTimeStamp(DELAY_TIME),
-                   w(make_shared<WorkQueue>(MutexType::None)) {}
+class LTimer::Impl {
+public:
+    Impl() : bStatus(false),
+             timeStamp(0),
+             tmpTimeStamp(DELAY_TIME),
+             w(make_shared<WorkQueue>(MutexType::None)) {}
 
-LTimer::~LTimer() {
-    mutex.lock();
-    taskList.clear();
-    taskQueue.clear();
-    mutex.unlock();
-    stopTimer();
-    w = nullptr;
-}
-
-uint64_t LTimer::setTimer(int64_t time, 
-                          const function<void()> &f, 
-                          int64_t count) {
-    if (time <= 0)
-        return 0;
-        
-    uint64_t uuid = UUID::generateUuid();
-    mutex.lock();
-    taskList.emplace_back(time * 1000, time * 1000, f, count, uuid);
-    tmpTimeStamp = tmpTimeStamp > time*1000 ? time*1000 : tmpTimeStamp;
-    mutex.unlock();
-    return uuid;
-}
-
-void LTimer::removeTimer(uint64_t uuid) {
-    mutex.lock();
-    for (auto it = taskList.begin(); it != taskList.end();) {
-        if (it->uuid == uuid) {
-            it = taskList.erase(it);
-        }
-        else {
-            it++;
-        }
-    }
-
-    mutex.unlock();
-}
-
-void LTimer::clearTimer() {
-    mutex.lock();
-    taskList.clear();
-    tmpTimeStamp = DELAY_TIME;
-    mutex.unlock();
-}
-
-void LTimer::startTimer() {
-    bool expect = false;
-    if (!bStatus.compare_exchange_strong(expect, true)) {
-        return;
-    }
-    
-    tvS = system_clock::now().time_since_epoch().count() / 1000;
-    tvE = tvS;
-
-    task();
-}
-
-void LTimer::stopTimer() {
-    bStatus.store(false);
-}
-
-void LTimer::task() {
-    w->addTask([this] {
+    void task() {
+        w->addTask([this] {
         mutex.lock();
         static int64_t lastMinStamp = this->tmpTimeStamp;
         this->timeStamp = lastMinStamp;
@@ -113,7 +61,8 @@ void LTimer::task() {
         this->tvS = system_clock::now().time_since_epoch().count() / 1000;
 
         std::this_thread::sleep_for(microseconds(this->timeStamp + 
-                                                 this->tvE - this->tvS));
+                                                 this->tvE - 
+                                                 this->tvS));
 
         this->tvE = system_clock::now().time_since_epoch().count() / 1000;
 
@@ -128,4 +77,99 @@ void LTimer::task() {
 
         this->task();
     });
+    }
+    typedef struct TaskNode_ {
+        TaskNode_(int64_t time_,
+                  int64_t maxTime_,
+                  const function<void()> &task_,
+                  int64_t count_,
+                  uint64_t uuid_) : time(time_),
+                                    maxTime(maxTime_),
+                                    count(count_),
+                                    uuid(uuid_),
+                                    task(task_) {}
+
+        int64_t time;     //任务准备时间，该时间不断更新，当准备时间为0时，执行任务
+        int64_t maxTime;  //任务超时时间
+        int64_t count;    //任务执行次数，-1代表无限执行
+        uint64_t uuid;    //任务uuid
+        function<void()> task;
+    } TaskNode;
+
+    list<TaskNode> taskList;
+    list<function<void()>> taskQueue;
+
+    atomic<bool> bStatus;  //是否开启定时器
+    int64_t timeStamp; //时间戳
+    int64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，
+                          //更新为最近的任务的时间。
+
+    shared_ptr<WorkQueue> w;
+    
+    int64_t tvS, tvE;
+
+    SpinMutex mutex;
+};
+
+LTimer::LTimer() : pImpl(std::make_unique<Impl>()) {}
+
+LTimer::~LTimer() {
+    pImpl->mutex.lock();
+    pImpl->taskList.clear();
+    pImpl->taskQueue.clear();
+    pImpl->mutex.unlock();
+    stopTimer();
+    pImpl->w = nullptr;
+}
+
+uint64_t LTimer::setTimer(int64_t time, 
+                          const function<void()> &f, 
+                          int64_t count) {
+    if (time <= 0)
+        return 0;
+        
+    uint64_t uuid = UUID::generateUuid();
+    pImpl->mutex.lock();
+    pImpl->taskList.emplace_back(time * 1000, time * 1000, f, count, uuid);
+    pImpl->tmpTimeStamp = pImpl->tmpTimeStamp > time*1000 ? 
+                          time*1000 : pImpl->tmpTimeStamp;
+    pImpl->mutex.unlock();
+    return uuid;
+}
+
+void LTimer::removeTimer(uint64_t uuid) {
+    pImpl->mutex.lock();
+    for (auto it = pImpl->taskList.begin(); it != pImpl->taskList.end();) {
+        if (it->uuid == uuid) {
+            it = pImpl->taskList.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
+
+    pImpl->mutex.unlock();
+}
+
+void LTimer::clearTimer() {
+    pImpl->mutex.lock();
+    pImpl->taskList.clear();
+    pImpl->tmpTimeStamp = DELAY_TIME;
+    pImpl->mutex.unlock();
+}
+
+void LTimer::startTimer() {
+    bool expect = false;
+    if (!pImpl->bStatus.compare_exchange_strong(expect, true)) {
+        return;
+    }
+    
+    pImpl->tvS = system_clock::now().time_since_epoch().count() / 1000;
+    pImpl->tvE = pImpl->tvS;
+
+    pImpl->task();
+}
+
+void LTimer::stopTimer() {
+    pImpl->bStatus.store(false);
 }

@@ -2,7 +2,7 @@
 #define UUID_HPP_
 
 #include <random>
-
+#include <chrono>
 namespace lmc {
 class UUID {
 public:

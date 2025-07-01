@@ -5,6 +5,11 @@
 #include "timer/ltimer.h"
 #include "util/single.hpp"
 
+#include <condition_variable>
+#include <atomic>
+#include <thread>
+#include <mutex>
+
 using namespace std;
 using namespace lmc;
 
