@@ -5,7 +5,7 @@ project(lmcbase VERSION 1.2.11)
 add_compile_options(-W)
 
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wconversion -Wsign-conversion\
-                     -Wshadow -Wnull-dereference -fsanitize=undefined")
+                     -Wshadow -Wnull-dereference")
 
 
 

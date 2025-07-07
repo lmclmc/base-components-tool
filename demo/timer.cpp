@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
     cmdline->add<std::list<int>>("-a", "--add", "add timer");
     cmdline->add<int>("-c", "--clear", "delay sometime clear all timer");
     cmdline->add("-d", "--default", "default mode");
-
     cmdline->parse(false, argc, argv);
 
     LTimer *t = TypeSingle<LTimer>::getInstance();
@@ -84,16 +83,32 @@ int main(int argc, char *argv[]) {
         if (!ret)
             exit(0);
 
+        typedef struct ele_ {
+            int count = 0;
+            std::string name = "";
+        } ele;
+        std::list<ele> eleList;
         for (auto &l : sList) {
-            t->setTimer(l, [l] {
-                static uint64_t tvS = 0;
-                static uint64_t tvE = 0;
-                tvS = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
-
-                cout << l <<"ms delay test " << (tvS - tvE)/1000 << endl;
-                tvE = static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
+            eleList.emplace_back(ele());
+            auto last = &eleList.back();
+            (*last).name = std::to_string(l);
+            (*last).count = 0;
+            cout << last << endl;
+            t->setTimer(l, [last] {
+                (*last).count++;
             });
         }
+
+        int seconds = 0;
+        while (1) {
+            sleep(1);
+            seconds++;
+            for (auto &v : eleList) {
+                cout << "timername: " <<  v.name << " , count = " << v.count 
+                << " count per second " << v.count/seconds << endl;
+            }
+        }
+
         int time;
         ret = cmdline->get("--clear", time);
         if (ret) {

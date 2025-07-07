@@ -14,33 +14,29 @@ using namespace std::chrono;
 class LTimer::Impl {
 public:
     Impl() : bStatus(false),
-             timeStamp(0),
-             tmpTimeStamp(DELAY_TIME),
              w(make_shared<WorkQueue>(MutexType::None)) {}
 
     void task() {
         w->addTask([this] {
         mutex.lock();
-        static int64_t lastMinStamp = this->tmpTimeStamp;
-        this->timeStamp = lastMinStamp;
-        lastMinStamp = this->tmpTimeStamp;
-
-        //更新所有任务的准备时间
+        int64_t now = system_clock::now().time_since_epoch().count() / 1000;
+        int64_t lastMinStamp = now + DELAY_TIME;
+        //更新所有任务的时间戳
         for (auto it = this->taskList.begin();
                 it != this->taskList.end();) {
-            it->time -= this->timeStamp;
-
-            if (it->time <= 0) {
+            if (it->timeStamp <= now) {
                 if (it->count > 0)
                     it->count--;
                 //当准备时间小于0时，将任务加入到就绪队列里面
                 this->taskQueue.emplace_back(it->task);
-                it->time = it->maxTime;
+
+                while (it->timeStamp <= now)
+                    it->timeStamp += it->timeout;
             }
 
             //取所有任务里面最小的准备时间。
-            if (it->time < lastMinStamp)
-                lastMinStamp = it->time;
+            if (it->timeStamp < lastMinStamp)
+                lastMinStamp = it->timeStamp;
 
             if (it->count == 0) {
                 //当计数为0时，移除该任务。
@@ -50,25 +46,13 @@ public:
                 it++;
             }
         }
-        //当没有定时器任务时，将临时延迟时间戳置为DELAY_TIME
-        if (this->taskList.size() == 0) {
-            tmpTimeStamp = DELAY_TIME;
-        }
 
         mutex.unlock();
 
-        //为了提高定时精确度，消除任务运行耗时造成的时间损耗，使用该变量。
-        this->tvS = system_clock::now().time_since_epoch().count() / 1000;
+        std::this_thread::sleep_for(microseconds(lastMinStamp-now)/2);
 
-        std::this_thread::sleep_for(microseconds(this->timeStamp + 
-                                                 this->tvE - 
-                                                 this->tvS));
-
-        this->tvE = system_clock::now().time_since_epoch().count() / 1000;
-
-        for (auto &t : this->taskQueue) {
+        for (auto &t : this->taskQueue)
             t();
-        }
 
         this->taskQueue.clear();
 
@@ -79,18 +63,17 @@ public:
     });
     }
     typedef struct TaskNode_ {
-        TaskNode_(int64_t time_,
-                  int64_t maxTime_,
+        TaskNode_(int64_t timeout_,
                   const function<void()> &task_,
                   int64_t count_,
-                  uint64_t uuid_) : time(time_),
-                                    maxTime(maxTime_),
+                  uint64_t uuid_) : timeout(timeout_),
+                                    timeStamp(system_clock::now().time_since_epoch().count() / 1000),
                                     count(count_),
                                     uuid(uuid_),
                                     task(task_) {}
 
-        int64_t time;     //任务准备时间，该时间不断更新，当准备时间为0时，执行任务
-        int64_t maxTime;  //任务超时时间
+        int64_t timeout;  //任务超时时间
+        int64_t timeStamp; //任务时间戳
         int64_t count;    //任务执行次数，-1代表无限执行
         uint64_t uuid;    //任务uuid
         function<void()> task;
@@ -100,9 +83,6 @@ public:
     list<function<void()>> taskQueue;
 
     atomic<bool> bStatus;  //是否开启定时器
-    int64_t timeStamp; //时间戳
-    int64_t tmpTimeStamp; //临时时间戳，不断更新，每次执行一轮任务后，
-                          //更新为最近的任务的时间。
 
     shared_ptr<WorkQueue> w;
     
@@ -130,9 +110,7 @@ uint64_t LTimer::setTimer(int64_t time,
         
     uint64_t uuid = UUID::generateUuid();
     pImpl->mutex.lock();
-    pImpl->taskList.emplace_back(time * 1000, time * 1000, f, count, uuid);
-    pImpl->tmpTimeStamp = pImpl->tmpTimeStamp > time*1000 ? 
-                          time*1000 : pImpl->tmpTimeStamp;
+    pImpl->taskList.emplace_back(time * 1000, f, count, uuid);
     pImpl->mutex.unlock();
     return uuid;
 }
@@ -154,7 +132,6 @@ void LTimer::removeTimer(uint64_t uuid) {
 void LTimer::clearTimer() {
     pImpl->mutex.lock();
     pImpl->taskList.clear();
-    pImpl->tmpTimeStamp = DELAY_TIME;
     pImpl->mutex.unlock();
 }
 
