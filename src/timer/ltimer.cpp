@@ -19,7 +19,7 @@ public:
     void task() {
         w->addTask([this] {
         mutex.lock();
-        int64_t now = system_clock::now().time_since_epoch().count() / 1000;
+        int64_t now = steady_clock::now().time_since_epoch().count() / 1000;
         int64_t lastMinStamp = now + DELAY_TIME;
         //更新所有任务的时间戳
         for (auto it = this->taskList.begin();
@@ -67,7 +67,7 @@ public:
                   const function<void()> &task_,
                   int64_t count_,
                   uint64_t uuid_) : timeout(timeout_),
-                                    timeStamp(system_clock::now().time_since_epoch().count() / 1000),
+                                    timeStamp(steady_clock::now().time_since_epoch().count() / 1000),
                                     count(count_),
                                     uuid(uuid_),
                                     task(task_) {}
