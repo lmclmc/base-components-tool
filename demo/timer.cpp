@@ -1,4 +1,5 @@
 #include <iostream>
+#include "version.h"
 #include "threadpool/workqueue.h"
 #include "timer/ltimer.h"
 #include "util/single.hpp"
@@ -14,12 +15,19 @@ int main(int argc, char *argv[]) {
     cmdline->add<std::list<int>>("-a", "--add", "add timer");
     cmdline->add<int>("-c", "--clear", "delay sometime clear all timer");
     cmdline->add("-d", "--default", "default mode");
+    cmdline->add("-v", "--version", "get version");
     cmdline->parse(false, argc, argv);
+
+    bool ret = cmdline->get("--version");
+    if (ret) {
+        cout << "version: " << PROJECT_VERSION << endl;
+        return 0;
+    }
 
     LTimer *t = TypeSingle<LTimer>::getInstance();
     t->startTimer();
 
-    bool ret = cmdline->get("--default");
+    ret = cmdline->get("--default");
     if (ret) {
          uint64_t timer100 = t->setTimer(100, [] {
             static uint64_t tvS = 0;
@@ -86,27 +94,24 @@ int main(int argc, char *argv[]) {
         typedef struct ele_ {
             int count = 0;
             std::string name = "";
+            double tvS;
         } ele;
         std::list<ele> eleList;
         for (auto &l : sList) {
             eleList.emplace_back(ele());
             auto last = &eleList.back();
             (*last).name = std::to_string(l);
-            (*last).count = 0;
+            (*last).count = 10000000;
             cout << last << endl;
             t->setTimer(l, [last] {
-                (*last).count++;
-            });
-        }
+                if ((*last).count++ > 10000000) {
+                    (*last).tvS = static_cast<double>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000;
+                    (*last).count = 0;
+                }
 
-        int seconds = 0;
-        while (1) {
-            sleep(1);
-            seconds++;
-            for (auto &v : eleList) {
-                cout << "timername: " <<  v.name << " , count = " << v.count 
-                << " count per second " << v.count/seconds << endl;
-            }
+                double timestamp = static_cast<double>(std::chrono::system_clock::now().time_since_epoch().count()) / 1000 - (*last).tvS;
+                cout << "timer name: " << (*last).name << " duration per count: " << timestamp/1000/(*last).count << " ms"<< endl;
+            });
         }
 
         int time;
@@ -119,6 +124,8 @@ int main(int argc, char *argv[]) {
 
     sleep(10);
     TypeSingle<LTimer>::destory();
+    cout << "timer demo end" << endl;
+    // Pause to see the output
     pause();
 
     return 0;

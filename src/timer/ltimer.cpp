@@ -86,18 +86,13 @@ public:
 
     shared_ptr<WorkQueue> w;
     
-    int64_t tvS, tvE;
-
     SpinMutex mutex;
 };
 
 LTimer::LTimer() : pImpl(std::make_unique<Impl>()) {}
 
 LTimer::~LTimer() {
-    pImpl->mutex.lock();
-    pImpl->taskList.clear();
-    pImpl->taskQueue.clear();
-    pImpl->mutex.unlock();
+    clearTimer();
     stopTimer();
     pImpl->w = nullptr;
 }
@@ -140,9 +135,6 @@ void LTimer::startTimer() {
     if (!pImpl->bStatus.compare_exchange_strong(expect, true)) {
         return;
     }
-    
-    pImpl->tvS = system_clock::now().time_since_epoch().count() / 1000;
-    pImpl->tvE = pImpl->tvS;
 
     pImpl->task();
 }
