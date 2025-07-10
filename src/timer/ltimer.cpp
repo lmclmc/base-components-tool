@@ -18,49 +18,49 @@ public:
 
     void task() {
         w->addTask([this] {
-        mutex.lock();
-        int64_t now = steady_clock::now().time_since_epoch().count() / 1000;
-        int64_t lastMinStamp = now + DELAY_TIME;
-        //更新所有任务的时间戳
-        for (auto it = this->taskList.begin();
-                it != this->taskList.end();) {
-            if (it->timeStamp <= now) {
-                if (it->count > 0)
-                    it->count--;
-                //当准备时间小于0时，将任务加入到就绪队列里面
-                this->taskQueue.emplace_back(it->task);
+            mutex.lock();
+            int64_t now = steady_clock::now().time_since_epoch().count() / 1000;
+            int64_t lastMinStamp = now + DELAY_TIME;
+            //更新所有任务的时间戳
+            for (auto it = this->taskList.begin();
+                    it != this->taskList.end();) {
+                if (it->timeStamp <= now) {
+                    if (it->count > 0)
+                        it->count--;
+                    //当准备时间小于0时，将任务加入到就绪队列里面
+                    this->taskQueue.emplace_back(it->task);
 
-                while (it->timeStamp <= now)
-                    it->timeStamp += it->timeout;
+                    while (it->timeStamp <= now)
+                        it->timeStamp += it->timeout;
+                }
+
+                //取所有任务里面最小的准备时间。
+                if (it->timeStamp < lastMinStamp)
+                    lastMinStamp = it->timeStamp;
+
+                if (it->count == 0) {
+                    //当计数为0时，移除该任务。
+                    it = this->taskList.erase(it);
+                }
+                else {
+                    it++;
+                }
             }
 
-            //取所有任务里面最小的准备时间。
-            if (it->timeStamp < lastMinStamp)
-                lastMinStamp = it->timeStamp;
+            mutex.unlock();
 
-            if (it->count == 0) {
-                //当计数为0时，移除该任务。
-                it = this->taskList.erase(it);
-            }
-            else {
-                it++;
-            }
-        }
+            std::this_thread::sleep_for(microseconds(lastMinStamp-now)/2);
 
-        mutex.unlock();
+            for (auto &t : this->taskQueue)
+                t();
 
-        std::this_thread::sleep_for(microseconds(lastMinStamp-now)/2);
+            this->taskQueue.clear();
 
-        for (auto &t : this->taskQueue)
-            t();
+            if (!this->bStatus)
+                return;
 
-        this->taskQueue.clear();
-
-        if (!this->bStatus)
-            return;
-
-        this->task();
-    });
+            this->task();
+        });
     }
     typedef struct TaskNode_ {
         TaskNode_(int64_t timeout_,
@@ -95,6 +95,7 @@ LTimer::~LTimer() {
     clearTimer();
     stopTimer();
     pImpl->w = nullptr;
+    pImpl.reset();
 }
 
 uint64_t LTimer::setTimer(int64_t time, 

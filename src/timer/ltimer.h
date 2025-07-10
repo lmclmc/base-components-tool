@@ -14,7 +14,7 @@
 using namespace std;
 
 namespace lmc {
-class LTimer {
+class LTimer final {
 public:
     LTimer();
 

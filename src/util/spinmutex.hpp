@@ -8,14 +8,14 @@ class SpinMutex {
 public:
     SpinMutex() : flag_(false) {}
 
-    void lock() {
+    inline void lock() {
         bool expect = false;
         while (!flag_.compare_exchange_weak(expect, true)) {
             expect = false;
         }
     }
 
-    void unlock() {
+    inline void unlock() {
         flag_.store(false);
     }
 

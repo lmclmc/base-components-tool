@@ -25,10 +25,14 @@ Thread::Thread() : pImpl(std::make_unique<Impl>()) {
     pImpl->t = thread([this] {
         mutex localMutex;
         unique_lock<mutex> localLock(localMutex);
-        while (pImpl->bStop){
+        while (1){
             pImpl->c.wait(localLock, [this] {
                 return pImpl->cStatus ? pImpl->cStatus-- : false;
             });
+
+            if (!pImpl->bStop)
+                return;
+
             run();
         }
     });

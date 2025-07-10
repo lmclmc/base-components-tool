@@ -9,6 +9,7 @@
 using namespace std;
 using namespace lmc;
 
+
 int main(int argc, char *argv[]) {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
 
@@ -124,6 +125,7 @@ int main(int argc, char *argv[]) {
 
     sleep(10);
     TypeSingle<LTimer>::destory();
+    TypeSingle<CmdLine>::destory();
     cout << "timer demo end" << endl;
     // Pause to see the output
     pause();

@@ -610,10 +610,10 @@ private:
     STL_T data;
 };
 
-class CmdLine {
+class CmdLine final {
 public:
     CmdLine() = default;
-    ~CmdLine() = default;
+    ~CmdLine();
     
     /**
      * @brief add 设置命令行选项以及附带参数
