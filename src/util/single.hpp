@@ -14,10 +14,15 @@
 
 namespace lmc {
 template<typename T>
-class TypeSingle {
+class TypeSingle final {
 public:
     template<typename ...Args>
     inline static T *getInstance(Args &&...args) {
+        constexpr bool isPointerRef = std::is_pointer<T>::value ||
+                                      std::is_lvalue_reference<T>::value ||
+                                      std::is_rvalue_reference<T>::value;
+        static_assert(!isPointerRef,
+	                  "References and pointers are not allowed as parameters");
         if (nullptr == instance) {
             sMutex.lock();
             if (nullptr == instance) {
