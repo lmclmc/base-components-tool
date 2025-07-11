@@ -15,6 +15,10 @@ public:
     Thread();
     virtual ~Thread();
 
+    Thread(const Thread &) = delete;
+    Thread(Thread &&) = delete;
+    Thread &operator=(Thread &&) = delete;
+
 protected:
     void start();
     virtual void run() = 0;

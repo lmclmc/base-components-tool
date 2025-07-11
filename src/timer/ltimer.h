@@ -19,6 +19,9 @@ public:
     LTimer();
 
     ~LTimer();
+    LTimer(const LTimer &) = delete;
+    LTimer(LTimer &&) = delete;
+    LTimer &operator=(LTimer &&) = delete;
 
     /**
      * @brief setTimer 设置定时器

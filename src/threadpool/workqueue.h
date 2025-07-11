@@ -45,6 +45,10 @@ public:
     WorkQueue(MutexType m);
     ~WorkQueue();
 
+    WorkQueue(const WorkQueue &) = delete;
+    WorkQueue(WorkQueue &&) = delete;
+    WorkQueue &operator=(WorkQueue &&) = delete;
+
     /**
      * @brief 添加任务
      * @param 第一个参数为任务函数指针，可以使匿名函数，后面的参数均为前面函数的参数

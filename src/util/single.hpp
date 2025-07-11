@@ -21,18 +21,11 @@ public:
             sMutex.lock();
             if (nullptr == instance) {
                 instance = new T(args...);
-            }
-            sMutex.unlock();
-        }
-
-        return instance;
-    }
-
-    inline static T *getInstance() {
-        if (nullptr == instance) {
-            sMutex.lock();
-            if (nullptr == instance) {
-                instance = new T();
+                if (!instance) {
+                    std::cout << "create " << typeid(T).name() 
+                              << " error, exit now..." << std::endl;
+                    exit(0);
+                } 
             }
             sMutex.unlock();
         }
@@ -41,16 +34,22 @@ public:
     }
 
     static void destory() {
-        sMutex.lock();
-        if (nullptr != instance) {
-            delete instance;
-            instance = nullptr;
+        if (instance) {
+            sMutex.lock();
+            if (instance) {
+                T *tmpInstance = instance;
+                instance = nullptr;
+                delete tmpInstance;
+            }
+            sMutex.unlock();
         }
-        sMutex.unlock();
     }
 
-private:
-    TypeSingle() = default;
+    TypeSingle() = delete;
+    TypeSingle(const TypeSingle &) = delete;
+    TypeSingle(TypeSingle &&) = delete;
+    TypeSingle &operator=(TypeSingle &&) = delete;
+    ~TypeSingle() = delete;
 
 private:
     static std::mutex sMutex;

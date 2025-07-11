@@ -614,6 +614,10 @@ class CmdLine final {
 public:
     CmdLine() = default;
     ~CmdLine();
+
+    CmdLine(const CmdLine &) = delete;
+    CmdLine(CmdLine &&) = delete;
+    CmdLine &operator=(CmdLine &&) = delete;
     
     /**
      * @brief add 设置命令行选项以及附带参数
