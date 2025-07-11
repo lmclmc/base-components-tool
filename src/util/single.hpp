@@ -10,6 +10,7 @@
 
 #include <mutex>
 #include <unistd.h>
+#include <string.h>
 
 namespace lmc {
 template<typename T>
@@ -20,10 +21,11 @@ public:
         if (nullptr == instance) {
             sMutex.lock();
             if (nullptr == instance) {
-                instance = new T(args...);
+                instance = new (std::nothrow) T(args...);
                 if (!instance) {
-                    std::cout << "create " << typeid(T).name() 
-                              << " error, exit now..." << std::endl;
+                    std::cout << "create " << typeid(T).name()
+                              << " error, reason is " << strerror(errno)
+                              << ", exit now... " << std::endl;
                     exit(0);
                 } 
             }
@@ -33,7 +35,7 @@ public:
         return instance;
     }
 
-    static void destory() {
+    inline static void destory() {
         if (instance) {
             sMutex.lock();
             if (instance) {
