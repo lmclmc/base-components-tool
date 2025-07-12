@@ -15,7 +15,7 @@ using namespace lmc;
 
 void asd() {
     static int num = 0;
-    if (num % 100000 == 0) cout << num << endl;
+    if (num % 10000 == 0) cout << num << endl;
          num++;
 
 }
@@ -26,7 +26,7 @@ int test(int num) {
 
 int main() {
     WorkQueue *a = TypeSingle<WorkQueue>::getInstance(MutexType::Mutex);
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 0; i < 100000; i++) {
         a->addTask(asd);
     }
     std::this_thread::sleep_for(std::chrono::microseconds(2000000));
@@ -54,6 +54,6 @@ int main() {
     std::cout << "ret = " <<  ret4.get() << std::endl;
     std::cout << "ret = " <<  ret5.get() << std::endl;
     std::cout << "ret = " <<  ret6.get() << std::endl;
-    pause();
+    TypeSingle<WorkQueue>::destory();
     return 0;
 }

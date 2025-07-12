@@ -364,11 +364,12 @@ int parsecmdline(CmdLine *cmd, int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
     CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
+    int ret = 0;
     try {
-        return parsecmdline(cmd, argc, argv);
+        ret = parsecmdline(cmd, argc, argv);
     } catch(CmdLineError& e) {
         //std::cerr << e.what() << '\n';
     }
     TypeSingle<CmdLine>::destory();
-    return 0;
+    return ret;
 }
