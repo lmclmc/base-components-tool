@@ -12,17 +12,22 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "type.hpp"
+
 namespace lmc {
 template<typename T>
 class TypeSingle final {
 public:
     template<typename ...Args>
     inline static T *getInstance(Args &&...args) {
-        constexpr bool isPointerRef = std::is_pointer<T>::value ||
-                                      std::is_lvalue_reference<T>::value ||
-                                      std::is_rvalue_reference<T>::value;
-        static_assert(!isPointerRef,
-	                  "References and pointers are not allowed as parameters");
+        constexpr bool isPointerRefFT = std::is_pointer<T>::value ||
+                                        std::is_lvalue_reference<T>::value ||
+                                        std::is_rvalue_reference<T>::value ||
+                                        lmc::Search<T, NumTypeList>::status;
+        static_assert(!isPointerRefFT,
+	                  "\033[93mReferences, pointers and fundamental type "
+                      "\n are not allowed as parameters \033[0m");
+
         if (nullptr == instance) {
             sMutex.lock();
             if (nullptr == instance) {

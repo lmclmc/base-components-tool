@@ -22,7 +22,8 @@ struct PushType<NewType, TypeList<Args...>> {
 };
 
 using EmptyTypeList = TypeList<>;
-#define PUSH_UNSIGNED_CHAR  PushType<unsigned char, EmptyTypeList>::type
+#define PUSH_VOID           PushType<void, EmptyTypeList>::type
+#define PUSH_UNSIGNED_CHAR  PushType<unsigned char, PUSH_VOID>::type
 #define PUSH_UNSIGNED_SHORT PushType<unsigned short, PUSH_UNSIGNED_CHAR>::type
 #define PUSH_SHORT          PushType<short, PUSH_UNSIGNED_SHORT>::type
 #define PUSH_UNSIGNED_INT   PushType<unsigned int, PUSH_SHORT>::type
