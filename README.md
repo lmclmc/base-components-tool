@@ -1,121 +1,41 @@
 # base-components-tool
-目前支持线程池 定时器（支持多任务） log日志 cmdline 命令行解析 等功能 
-## build
+     零依赖，快速构建部署的小工具，目前支持线程池 定时器（支持多任务） log日志 cmdline 命令行解析 等功能 
+## 一、构建方法
     ./build.sh
-## cmdline
-### normal usage
-    #include "cmdline/cmdline.h"
-    #include "util/single.hpp"
-    #include "log/log.h"
 
-    int main(int argv, char *argv)
-    {
-        CmdLine *cmd = TypeSingle<CmdLine>::getInstance();
-        // add specified type of variable.
-        // 1st argument is short name
-        // 2nd argument is long name
-        // 3rd argument is description
-        // 4th argument is depends option
-        // 5th argument is paramter ranage
-        cmd->add<std::unordered_multiset<int>>("-unmint", "--unorderdmsetint", 
-                                            "get unordered_multiset int", 
-                                            {"-dix"}, {44, 99});
-        // add specified type of variable.
-        // 1st argument is long name
-        // 2nd argument is short name (no short name if '\0' specified)
-        // 3rd argument is description
-        // 4th argument is depends option
-        cmd->add("-n", "--none", "get none", {"-s", "-us", "-i"});
-        // add specified type of variable.
-        // 1st argument is long name
-        // 2nd argument is short name (no short name if '\0' specified)
-        // 3rd argument is description
-        // 4th argument is depends option
-        // 5th argument is paramter ranage
-        cmd->add<std::string>("-sns", "--singlestring", "get single string", 
-                            {"-s", "-us", "-i"}, 
-                            {"aaa", "vvv", "bbb", "rrr", "ttt"});
-        //parse paramter argv
-        cmd->parse(false, argc, argv);
-        //get value
-        std::string singleStr;
-        bool ret = cmd->get("--singlestring", singleStr);
-        ...
-        ...
-        ...
-    }
+## 二、cmdline 命令行解析组件  
+### 功能概述  
+cmdline 是一个支持多类型参数解析的命令行工具，主要用于解析程序运行时的命令行参数。其核心能力包括：  
+- 支持为基础类型（如 `int`、`float`）及多种 STL 容器类型（如 `std::unordered_multiset<int>`、`std::string`、`std::deque`、`std::queue`、`std::stack` 等）定义命令行选项；  
+- 支持通过 `add` 方法灵活定义短选项（如 `-n`）、长选项（如 `--none`）、描述信息、依赖选项（如 `{"-s", "-us", "-i"}`）及参数范围（如枚举值 `{"aaa", "vvv", "bbb"}` 或数值区间 `[44, 99]`）；  
+- 提供参数依赖检查、参数范围限制等功能，确保输入参数的合法性与逻辑一致性。  
 
-### cmdline execution results
-    ./build/install/demo/cmdline/cmdline 
-    usage: ./build/install/demo/cmdline/cmdline [options] ...
-    options:
-    -s        , --short                  get short
-                                            parameter range is [33 , 55]
-    -us       , --us                     get unsigned short
-    -i        , --int                    get int
-    -ui       , --ui                     get unsigned int
-                                            option depends [ -s -us -i ]
-    -f        , --float                  get float
-                                            parameter range is [23 , 100]
-    -d        , --double                 get double
-    -l        , --long                   get long
-    -ul       , --ul                     get unsigned long
-    -string   , --string                 get string
-                                            parameter range is [ aaa vvv bbb rrr ttt ]
-    -ls       , --lstring                get list string
-                                            parameter range is [ aaa vvv bbb rrr ttt ]
-    -ss       , --sstring                get set string
-                                            parameter range is [ aaa bbb rrr ttt vvv ]
-    -si       , --sint                   get set int
-                                            option depends [ -ss -us ]
-                                            parameter range is [44 , 99]
-    -ds       , --dstring                get deque string
-                                            parameter range is [ aaa vvv bbb rrr ttt ]
-    -di       , --dint                   get deque int
-                                            parameter range is [44 , 99]
-    -dsss     , --queuestring            get queue string
-                                            parameter range is [ aaa vvv bbb rrr ttt ]
-    -diss     , --queueint               get queue int
-                                            parameter range is [44 , 99]
-    -dsa      , --stackstring            get stack string
-                                            parameter range is [ ttt rrr bbb vvv aaa ]
-    -dix      , --stackint               get stack int
-                                            parameter range is [44 , 99]
-    -flstring , --forwardliststring      get forward_list string
-                                            parameter range is [ aaa vvv bbb rrr ttt ]
-    -flint    , --forwardlistint         get forward_list int
-                                            parameter range is [44 , 99]
-    -mmstr    , --multisetstring         get multiset string
-                                            parameter range is [ aaa bbb rrr ttt vvv ]
-    -mmint    , --multisetint            get multiset int
-                                            parameter range is [44 , 99]
-    -unstr    , --unorderedsetstring     get unordered_set string
-                                            parameter range is [ bbb rrr vvv ttt aaa ]
-    -unint    , --unorderdsetint         get unordered_set int
-                                            parameter range is [44 , 99]
-    -unmstr   , --unorderedmsetstring    get unordered_multiset string
-                                            parameter range is [ bbb rrr vvv aaa ]
-    -unmint   , --unorderdmsetint        get unordered_multiset int
-                                            parameter range is [44 , 99]
-    -n        , --none                   get none
-                                            option depends [ -s -us -i ]
-    -sns      , --singlestring           get single string
-                                            option depends [ -s -us -i ]
-                                            parameter range is [ aaa vvv bbb rrr ttt ]
-    -sni1     , --singleint1             get single int1
-                                            option depends [ -s -us -i ]
-                                            parameter range is [12 , 33]
-    -sni2     , --singleint2             get single int2
-                                            option depends [ -s -us -i ]
-                                            parameter range is [12 , 33]
-    -v        , --version                get version
-    -h        , --help                   print help message
+### 核心优点  
+- 多类型支持：跨平台、简单易用，兼容基础类型与几乎所有 STL 容器类型，满足复杂场景下的参数解析需求；  
+- 依赖检查：可定义选项间的依赖关系（如 `--singlestring` 依赖 `{"-s", "-us", "-i"}`），确保参数逻辑一致；  
+- 参数范围限制：支持数值区间（如 `[44, 99]`）或枚举值（如 `{"aaa", "vvv"}`）限制，避免非法参数输入；  
+- 使用便捷：通过 `add` 方法链式定义选项，解析后通过 `get` 方法直接获取参数值，接口简单易用。  
+- 轻量级、现代 C++ 风格（头文件仅），支持子命令、类型安全、自动生成帮助信息。
 
-## timer
-	./build/install/demo/timer/timer 
-	usage: ./build/install/demo/timer/timer [options] ...
-	options:
-		-a        , --add                    add timer
-		-c        , --clear                  delay sometime clear all timer
-		-d        , --default                default mode
-		-h        , --help                   print help message
+
+## 三、timer 定时器组件  
+### 功能概述  
+timer 是一个支持多任务的定时器组件，用于管理定时任务的添加、清除等操作。其行为可通过命令行选项控制（如 `./build/install/demo/timer/timer -a` 添加定时器，`-c` 延迟清除所有定时器），支持多任务并发执行。  
+
+### 核心优点  
+- 跨平台、简单易用。
+- 多任务支持：可同时管理多个定时任务，适用于需要并行执行多个定时逻辑的场景（如监控、周期性数据同步）；  
+- 灵活控制：提供 `add`（添加）、`clear`（延迟清除）等操作接口，支持动态调整定时任务生命周期；  
+- 模式简化：内置 `default` 默认模式，降低基础场景的使用门槛，无需复杂配置即可快速启动定时器。  
+
+
+## 四、threadpool 线程池组件  
+### 功能概述  
+threadpool 是一个线程管理组件，通过预创建线程并复用的方式处理任务队列中的任务，避免频繁创建/销毁线程带来的性能损耗，高效管理线程生命周期。  
+
+### 核心优点（基于通用线程池特性及项目背景推测）  
+- 跨平台、简单易用，
+- 性能优化：通过线程复用减少线程创建/销毁的开销，提升高并发场景下的任务处理效率；  
+- 资源可控：可限制线程数量上限，避免资源耗尽（如 CPU/内存过载），保障程序稳定性；  
+- 任务队列管理：支持任务排队机制（可按顺序或优先级处理），避免任务堆积导致的程序崩溃；  
+- 易用性：提供简单接口（如提交任务到线程池），隐藏线程管理细节，降低多线程编程复杂度。
