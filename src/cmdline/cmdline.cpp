@@ -15,7 +15,7 @@ CmdLine::~CmdLine() {
 
 void CmdLine::parse(bool noParam, int argc, char *argv[]) {
     cmd = argv[0];
-    add("-h", "--help", "print help message");
+    add("-h", "--help", "print help message", [] () {});
 
     if (!noParam && argc <= 1)
         showHelp();
@@ -60,6 +60,12 @@ void CmdLine::parse(bool noParam, int argc, char *argv[]) {
     }
 
     paramCheck();
+
+    for (auto &l : paramTable) {
+        if (l->getEnable()) {
+            l->callBackFunc();
+        }
+    }
 }
 
 void CmdLine::paramCheck() {

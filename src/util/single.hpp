@@ -24,7 +24,7 @@ public:
                                          lmc::Search<T, NumTypeList>::status;
         static_assert(!isPointerRefFT,
                       "\033[93mReferences, pointers and fundamental type "
-                      "\n are not allowed as parameters \033[0m");
+                      "\n are not allowed as parameters\n  \033[0m");
 
         if (nullptr == instance) {
             sMutex.lock();

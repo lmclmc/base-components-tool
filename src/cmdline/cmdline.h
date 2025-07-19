@@ -14,6 +14,7 @@
 #include <list>
 #include <memory>
 #include <sstream>
+#include <functional>
 #include <set>
 #include <vector>
 #include <deque>
@@ -26,6 +27,35 @@
 #include "util/type.hpp"
 
 namespace lmc {
+// 普通函数参数萃取
+template <typename Func>
+struct function_traits;
+
+// 普通函数特化
+template <typename Ret, typename Arg, typename ...Args>
+struct function_traits<Ret(Arg, Args...)> {
+    static_assert(!(sizeof...(Args) > 0), "\033[93mThe callback parameter must"
+                                          " be limited to one\n \033[0m");
+    using ArgType = Arg;
+};
+
+template <typename Ret>
+struct function_traits<Ret()> {
+    using ArgType = void;
+};
+
+// 成员函数指针特化
+template <typename C, typename Ret, typename ...Args>
+struct function_traits<Ret(C::*)(Args...)> : function_traits<Ret(Args...)> {};
+
+// 常量成员函数指针特化
+template <typename C, typename Ret, typename ...Args>
+struct function_traits<Ret(C::*)(Args...) const> : function_traits<Ret(Args...)> {};
+
+// 基础函数特征萃取模板
+template <typename F>
+struct function_traits : public function_traits<decltype(&F::operator())> {};
+
 typedef enum class STLType_ : unsigned char {
     SINGLE, //no stl                                  idx: -1
     NONE, //none                                      idx: 0
@@ -39,11 +69,8 @@ typedef enum class STLType_ : unsigned char {
 #endif
 } STLType;
 
-template<typename T>
-class None{};
-
 //搜索STL容器列表索引
-template<typename ...Args>
+template <typename ...Args>
 struct SearchStlType {
     constexpr static int value = Search<Args...>::value;
     constexpr static STLType stlType = value == -1 ? STLType::SINGLE :
@@ -61,24 +88,24 @@ struct SearchStlType {
 };
 
 //容器分解，去除内部类型
-template<bool, typename ...>
+template <bool, typename ...>
 struct BreakDown;
 
-template<template<class ...Args> class STL, class T, class ...Args>
+template <template <class ...Args> class STL, class T, class ...Args>
 struct BreakDown<true, STL<T, Args...>> {
     using type = T;
 };
 
-template<bool IsInStl, class T>
+template <bool IsInStl, class T>
 struct BreakDown<IsInStl, T> {
     using type = T;
 };
 
 //判断是否为容器
-template<typename STL_T>
+template <typename STL_T>
 struct IsStl {
     using T                         = typename BreakDown<true, STL_T>::type;
-    using NoneType                  = None<T>;
+    //using VoidType                  = void;
     using ListType                  = typename std::list<T>;
     using VectorType                = typename std::vector<T>;
     using DequeType                 = typename std::deque<T>;
@@ -92,7 +119,7 @@ struct IsStl {
     using ForwardListType           = typename std::forward_list<T>;
 #endif
     using EmptyStl                  = TypeList<>;
-    using PushNoneType              = typename PushType<NoneType, 
+    using PushNoneType              = typename PushType<EmptyStl, 
                                                EmptyStl>::type;
     using PushListType              = typename PushType<ListType, 
                                                PushNoneType>::type;
@@ -128,30 +155,36 @@ struct IsStl {
 };
 
 //容器重新绑定
-template<bool, typename ...>
+template <bool, typename ...>
 struct ReBind;
 
-template<template<class ...Args> class STL, class T,
+template <template<class ...Args> class STL, class T,
          class ...Args, class ReplaceType>
 struct ReBind<true, STL<T, Args...>, ReplaceType> {
     using type = STL<ReplaceType>;
 };
 
 //如果传入类型参数不是容器，则使用默认容器list
-template<typename T1, typename T2>
-struct ReBind<true, None<T1>, T2> {
+template <typename T2>
+struct ReBind<true, void, T2> {
     using type = std::list<T2>;
 };
 
 //如果传入类型参数不是容器，则使用默认容器list
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 struct ReBind<false, T1, T2> {
     using type = std::list<T2>;
 };
 
-//将新类型绑定到STL_T的容器内部
-template<typename STL_T, typename NEW_T>
-using STL_NEW_T = typename ReBind<IsStl<STL_T>::status, STL_T, NEW_T>::type;
+template <typename STL_T, typename NEW_T>
+struct STL_NEW_T {
+    using type = typename ReBind<IsStl<STL_T>::status, STL_T, NEW_T>::type;
+};
+
+template <typename STL_T>
+struct STL_NEW_T<STL_T, void> {
+    using type = int;
+};
 
 class CmdLineError : public std::exception {
 public:
@@ -173,10 +206,10 @@ private:
 };
 
 //容器接口操作
-template<typename, typename, STLType>
+template <typename, typename, STLType>
 struct STLOperation;
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::NONE> {
     static void push(STL_T &data, T &t) {
         (void)data;
@@ -184,10 +217,8 @@ struct STLOperation<STL_T, T, STLType::NONE> {
     }
 
     static void searchDeps(const STL_T &deps, const std::set<std::string> &set) {
-        for (auto &d : deps)
-        {
-            if (set.find(d) == set.end())
-            {
+        for (auto &d : deps) {
+            if (set.find(d) == set.end()) {
                 CmdLineError err;
                 err << d;
                 throw err;
@@ -210,7 +241,7 @@ struct STLOperation<STL_T, T, STLType::NONE> {
     }
 };
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::VLD> :
        public STLOperation<STL_T, T, STLType::NONE> {
     static size_t getSize(STL_T &data) {
@@ -222,8 +253,7 @@ struct STLOperation<STL_T, T, STLType::VLD> :
     }
 
     static bool traverse(const STL_T &range, const T &value) {
-        for (auto &r : range)
-        {
+        for (auto &r : range) {
             if (value == r)
                 return true;
         }
@@ -250,16 +280,15 @@ struct STLOperation<STL_T, T, STLType::VLD> :
     }
 };
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::SINGLE> : 
        public STLOperation<STL_T, T, STLType::VLD> {
-    static void push(STL_T &data, T &t)
-    {
+    static void push(STL_T &data, T &t) {
         data = t;
     }
 };
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::SET> : 
        public STLOperation<STL_T, T, STLType::VLD> {
     static void push(STL_T &data, T &t) {
@@ -267,7 +296,7 @@ struct STLOperation<STL_T, T, STLType::SET> :
     }
 };
 #if __GNUC__ > 6
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::QUEUE> : 
        public STLOperation<STL_T, T, STLType::VLD> {
     static void push(STL_T &data, T &t) {
@@ -291,8 +320,7 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
         STL_T tmp = deps;
         size_t size = tmp.size();
         for (size_t i = 0; i < size; i++) {
-            if (set.find(tmp.front()) == set.end())
-            {
+            if (set.find(tmp.front()) == set.end()){
                 CmdLineError err;
                 err << tmp.front();
                 throw err;
@@ -328,7 +356,7 @@ struct STLOperation<STL_T, T, STLType::QUEUE> :
     }
 };
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::STACK> :
        public STLOperation<STL_T, T, STLType::QUEUE> {
     static bool traverse(STL_T &range, T &value) {
@@ -384,7 +412,7 @@ struct STLOperation<STL_T, T, STLType::STACK> :
     }
 };
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::FORWARD_LIST> : 
        public STLOperation<STL_T, T, STLType::VLD> {
     static void push(STL_T &data, T &t) {
@@ -400,7 +428,7 @@ struct STLOperation<STL_T, T, STLType::FORWARD_LIST> :
     }
 };
 
-template<typename STL_T, typename T>
+template <typename STL_T, typename T>
 struct STLOperation<STL_T, T, STLType::UNORDERED_SET> :
        public STLOperation<STL_T, T, STLType::SET> {
     static T getMax(STL_T &range) {
@@ -413,14 +441,14 @@ struct STLOperation<STL_T, T, STLType::UNORDERED_SET> :
 };
 #endif
 //读入字符串，转成指定类型
-template<typename Target, bool>
+template <typename Target, bool>
 struct Reader {
     Target operator()(const std::string &str) {
         return str;
     }
 };
 
-template<typename Target>
+template <typename Target>
 struct Reader<Target, true> {
     Target operator()(const std::string &str) {
         Target ret;
@@ -436,7 +464,7 @@ struct Reader<Target, true> {
 };
 
 //范围判断
-template<typename T, typename STL_T_R, typename STLList, bool>
+template <typename T, typename STL_T_R, typename STLList, bool>
 struct RangeJudge {
     bool operator()(T &value, STL_T_R &range) {
         constexpr STLType stlType = SearchStlType<STL_T_R, STLList>::stlType;
@@ -457,7 +485,7 @@ struct RangeJudge {
     }
 };
 
-template<typename T, typename STL_T, typename STLList>
+template <typename T, typename STL_T, typename STLList>
 struct RangeJudge<T, STL_T, STLList, true> {
     bool operator()(T &value, STL_T &range) {
         constexpr STLType stlType = SearchStlType<STL_T, STLList>::stlType;
@@ -466,8 +494,9 @@ struct RangeJudge<T, STL_T, STLList, true> {
             T max = STLOperation<STL_T, T, stlType>::getMax(range);
             if (min > value || max < value) {
                 CmdLineError err;
-                err << "    value range is " << static_cast<int>(min) << " to "
-                    << static_cast<int>(max) << " , " << static_cast<int>(value) << " is out of range";
+                err << "    value range is " << static_cast<int>(min) 
+                    << " to " << static_cast<int>(max) << " , " 
+                    << static_cast<int>(value) << " is out of range";
                 throw err;
                 return false;
             }
@@ -478,7 +507,7 @@ struct RangeJudge<T, STL_T, STLList, true> {
 };
 
 //STL容器数据转换成字符串
-template<typename STL_T_R, typename T, typename STLList, bool>
+template <typename STL_T_R, typename T, typename STLList, bool>
 struct STLDataToStr {
     std::string operator()(STL_T_R &range) {
         constexpr STLType stlType = SearchStlType<STL_T_R, STLList>::stlType;
@@ -492,7 +521,7 @@ struct STLDataToStr {
     }
 };
 
-template<typename STL_T, typename T, typename STLList>
+template <typename STL_T, typename T, typename STLList>
 struct STLDataToStr<STL_T, T, STLList, true> {
     std::string operator()(STL_T &range) {
         constexpr STLType stlType = SearchStlType<STL_T, STLList>::stlType;
@@ -523,6 +552,9 @@ public:
     //将当前选项所依赖的选项列表转化为字符串
     virtual std::string getDepsStr() = 0;
 
+    //调用参数回调函数
+    virtual void callBackFunc() = 0;
+
     void setEnable(bool);
     bool getEnable();
     std::string getName();
@@ -536,36 +568,33 @@ private:
     std::string mDescribtion;
 };
 
-template<//STL_T是用户定义的数据类型，有可能是容器，但也有可能不是
-         typename STL_T,
-         //STL_STR是选项依赖的数据类型。它是个容器，内部类型使用std::string
-         //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
-         typename STL_STR = STL_NEW_T<STL_T, std::string>,
-         //STL_R是参数范围的数据类型。它是个容器,内部类型与用户容器内部类型保持一致
-         //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
-         typename STL_T_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
+template <typename Func,
+          //STL_T是用户定义的数据类型，有可能是容器，但也有可能不是
+          typename STL_T = RemoveCVREF<typename function_traits<Func>::ArgType>,
+          //STL_STR是选项依赖的数据类型。它是个容器，内部类型使用std::string
+          //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
+          typename STL_STR = typename STL_NEW_T<STL_T, std::string>::type,
+          //STL_R是参数范围的数据类型。它是个容器,内部类型与用户容器内部类型保持一致
+          //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
+          typename STL_T_R = typename STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>::type>
 class ParamWithValue final : public ParamBase {
     using FinalT                     = typename IsStl<STL_T>::FinalT;
     using STLList                    = typename IsStl<STL_T>::STLList;
     constexpr static bool isNum      = Search<FinalT, NumTypeList>::status;
     constexpr static STLType stlType = SearchStlType<STL_T, STLList>::stlType;
-
 public:
     ParamWithValue(const std::string &name_,
                    const std::string &shortName_,
                    const std::string &describtion_,
+                   const Func &func_,
                    const STL_STR &dep_,
                    const STL_T_R &range_) :
                    ParamBase(name_, shortName_, describtion_),
                    singleParamStatus(true),
+                   func(func_),
                    range(range_),
                    deps(dep_) {}
     ~ParamWithValue() = default;
-
-    //获取当前选项的参数列表
-    STL_T &get() {
-        return data;
-    }
 
 protected:
     bool set(const std::string &value) override {
@@ -603,11 +632,89 @@ protected:
         return STLDataToStr<STL_STR, std::string, DepSTLList, false>()(deps);
     }
 
+    void callBackFunc() override {
+        func(data);
+    }
 private:
     bool singleParamStatus;
+    std::function<void(typename function_traits<Func>::ArgType)> func;
     STL_T_R range;
     STL_STR deps;
     STL_T data;
+};
+
+class ParamWithOutValue final : public ParamBase {
+public:
+ParamWithOutValue(const std::string &name_,
+                  const std::string &shortName_,
+                  const std::string &describtion_,
+                  const std::function<void()> &func_,
+                  const std::list<std::string> &dep_) :
+                  ParamBase(name_, shortName_, describtion_),
+                  func(func_),
+                  deps(dep_) {}
+    ~ParamWithOutValue() = default;
+
+protected:
+    bool set(const std::string &value) override {
+        (void)value; //忽略value参数
+        return true;
+    }
+
+    std::string getRangeStr() override {
+        return "";
+    }
+
+    void searchDeps(std::set<std::string> &set) override {
+        return STLOperation<std::list<std::string>, std::string, STLType::VLD>::searchDeps(deps, set);
+    }
+
+    std::string getDepsStr() override {
+        using DepSTLList = typename IsStl<int>::STLList;
+        return STLDataToStr<std::list<std::string>, std::string, DepSTLList, false>()(deps);
+    }
+
+    void callBackFunc() override {
+        func();
+    }
+private:
+    std::function<void(void)> func;
+    std::list<std::string> deps;
+};
+
+template <bool, typename Func, typename STL_STR, typename STL_R>
+struct PushParam {
+    static void push(std::list<std::shared_ptr<ParamBase>> &paramTable,
+                     const std::string &shortName, 
+                     const std::string &name,
+                     const std::string &describtion, 
+                     const Func &func,
+                     const STL_STR &dep, 
+                     const STL_R &range) {
+        paramTable.emplace_back(std::make_shared<ParamWithValue<Func>>(shortName, 
+                                                                       name, 
+                                                                       describtion, 
+                                                                       func, 
+                                                                       dep, 
+                                                                       range ));
+    }
+};
+
+template <typename Func, typename STL_STR, typename STL_R>
+struct PushParam<true, Func, STL_STR, STL_R> {
+    static void push(std::list<std::shared_ptr<ParamBase>> &paramTable,
+                     const std::string &shortName, 
+                     const std::string &name,
+                     const std::string &describtion, 
+                     const Func &func,
+                     STL_STR dep, STL_R range) {
+        (void)range; //忽略range参数
+        paramTable.emplace_back(std::make_shared<ParamWithOutValue>(shortName, 
+                                                                    name, 
+                                                                    describtion, 
+                                                                    func, 
+                                                                    dep));
+    }
 };
 
 class CmdLine final {
@@ -628,46 +735,21 @@ public:
      * @param range 可选参数,参数范围
      * @return 返回无
      */
-    template<//STL_T是用户定义的数据类型，有可能是容器，但也有可能不是
-             typename STL_T = None<int>,
+    template<typename Func,
+             //STL_T是用户定义的数据类型，有可能是容器，但也有可能不是
+             typename STL_T = RemoveCVREF<typename function_traits<Func>::ArgType>,
              //STL_STR是选项依赖的数据类型。它是个容器，内部类型使用std::string
              //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
-             typename STL_STR = STL_NEW_T<STL_T, std::string>,
+             typename STL_STR = typename STL_NEW_T<STL_T, std::string>::type,
              //STL_R是参数范围的数据类型。它是个容器,内部类型与用户容器内部类型保持一致
              //具体使用哪个容器与STL_T容器保持一致，如果STL_T不是容器则默认使用list
-             typename STL_R = STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>>
+             typename STL_R = typename STL_NEW_T<STL_T, typename IsStl<STL_T>::FinalT>::type>
     void add(const std::string &shortName, const std::string &name,
-             const std::string &describtion, STL_STR dep = STL_STR(), 
-             STL_R range = STL_R()) {
-        paramTable.emplace_back(std::make_shared<ParamWithValue<STL_T>>(name, 
-                                                 shortName, describtion, dep, 
-                                                 range));
-    }
-
-    /**
-     * @brief get 获取选项信息，或者获取参数信息,注意参数只能获取一次
-     * @param name 选项名称
-     * @param t  获取参数信息
-     * @return 返回 选项使能 true 否则 false
-     */
-    template<typename STL_T = None<int>>
-    bool get(const std::string &name, STL_T &&t = STL_T()) {
-        for (auto &l : paramTable) {
-            if ((l->getName() == name || l->getShortName() == name) &&
-                 l->getEnable()) {
-                //移除STL_T多余的类型修饰信息，const volatile等等。
-                using STL_T_ = RemoveCVREF<STL_T>;
-                auto p = std::dynamic_pointer_cast<ParamWithValue<STL_T_>>(l);
-                if (!p) {
-                    std::cout << __PRETTY_FUNCTION__ << std::endl;
-                    std::cout << "STL_T type error" << std::endl;
-                    return false;
-                }
-                t = std::move(p->get());
-                return true;
-            }
-        }
-        return false;
+             const std::string &describtion, const Func &func, 
+             STL_STR dep = STL_STR(), STL_R range = STL_R()) {
+        PushParam<std::is_same<STL_T, void>::value, 
+                  Func, STL_STR, STL_R>::push(paramTable, shortName, name, 
+                                              describtion, func, dep, range);
     }
 
     /**
