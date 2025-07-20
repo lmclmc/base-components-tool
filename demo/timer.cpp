@@ -6,13 +6,78 @@
 #include "cmdline/cmdline.h"
 #include <unistd.h>
 
+#include <iostream>
+#include <future>
+#include <thread>
+
 using namespace std;
 using namespace lmc;
 
+template <typename F>
+struct FunctionTraits;
 
+template <typename ...Args>
+struct FunctionTraits<std::function<void(Args...)>>  {
+public:
+    FunctionTraits(const std::function<void(Args...)> &func,
+                    std::promise<int> &&promise_) : cb(func), promise1(std::move(promise_)) {
+        std::cout << "FunctionTraits constructor called" << std::endl;
+    }
+    int asdd = 2333;
+    std::promise<int> promise1;
+
+    std::function<void(Args...)> cb;
+    static void ccb(Args... args) {
+        std::cout << "FunctionTraits::ccb called with args: " << std::endl;
+     
+    }
+    std::function<void(Args...)> asd = [this] (Args... args) {
+        std::cout << "FunctionTraits::asd called with args: " << std::endl;
+      this->cb(args...);
+      this->promise1.set_value(0); // 设置promise的值，表示任务完成
+    };
+};
+ 
+template <typename AsyncFunc, typename AsyncCallback>
+void runAsyncAsSyncTask(const AsyncFunc &asyncFunc, const AsyncCallback &callback) {
+    std::promise<int> promise;
+    std::future<int> future = promise.get_future();
+    using ArgType = typename function_traits<AsyncFunc>::ArgType;
+    FunctionTraits<ArgType> asd(callback, std::move(promise));
+  //  asd.cb = callback;
+   // asd.asd = callback;
+  //  asd.promise = std::move(promise);
+    asyncFunc(asd.asd);
+    future.get(); // 等待异步任务完成
+ //  asyncFunc(callback);
+  //  function_traits<AsyncCallback>
+    
+}
+
+void asyncTask(std::function<void(std::string, int, std::string, double)> func) {
+    TypeSingle<LTimer>::getInstance()->setTimer(1000, [func] {
+        printf("vvvvvvvvvvvvv\n");
+        func("how are you?", 11111, "hello", 3.14);
+      //  printf("wwwwwwwwwwwwwwwwwwwwwwwwwww\n");
+    }, 1);
+}
 int main(int argc, char *argv[]) {
     CmdLine *cmdline = TypeSingle<CmdLine>::getInstance();
     TypeSingle<LTimer>::getInstance()->startTimer();
+    asyncTask([] (std::string str, int num, std::string str2, double d) {
+        cout << "This is a synchronous task, received: " << str << ", " << num << ", " << str2 << ", " << d << endl;
+    });
+
+ //   sleep(2);
+    cout << "timer demo start" << endl;
+
+    runAsyncAsSyncTask(asyncTask, [] (std::string str, int num, std::string str2, double d) {
+        cout << "This is a synchronous task, received: " << str << ", " << num << ", " << str2 << ", " << d << endl;
+    });
+        
+    std::cout << "This is a synchronous task." << std::endl;
+ //   pause();
+    exit(0);
 
     cmdline->add("-a", "--add", "add timer", [] (std::list<int> &data) {
         typedef struct ele_ {
