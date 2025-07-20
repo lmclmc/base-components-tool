@@ -67,7 +67,8 @@ public:
                   const function<void()> &task_,
                   int64_t count_,
                   uint64_t uuid_) : timeout(timeout_),
-                                    timeStamp(steady_clock::now().time_since_epoch().count() / 1000),
+                                    timeStamp(steady_clock::now().time_since_epoch().count() 
+                                              / 1000 + timeout_),
                                     count(count_),
                                     uuid(uuid_),
                                     task(task_) {}
