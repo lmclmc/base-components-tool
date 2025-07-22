@@ -538,8 +538,8 @@ struct STLDataToStr<STL_T, T, STLList, true> {
 
 class ParamBase {
 public:
-    ParamBase(const std::string &name_,
-              const std::string &shortName_,
+    ParamBase(const std::string &shortName_,
+              const std::string &name_,
               const std::string &describtion_);
     virtual ~ParamBase() = default;
 
@@ -563,8 +563,8 @@ public:
 
 private:
     bool mEnable;
-    std::string mName;
     std::string mShortName;
+    std::string mName;
     std::string mDescribtion;
 };
 
@@ -583,13 +583,13 @@ class ParamWithValue final : public ParamBase {
     constexpr static bool isNum      = Search<FinalT, NumTypeList>::status;
     constexpr static STLType stlType = SearchStlType<STL_T, STLList>::stlType;
 public:
-    ParamWithValue(const std::string &name_,
-                   const std::string &shortName_,
+    ParamWithValue(const std::string &shortName_,
+                   const std::string &name_,
                    const std::string &describtion_,
                    const Func &func_,
                    const STL_STR &dep_,
                    const STL_T_R &range_) :
-                   ParamBase(name_, shortName_, describtion_),
+                   ParamBase(shortName_, name_, describtion_),
                    singleParamStatus(true),
                    func(func_),
                    range(range_),
@@ -645,12 +645,12 @@ private:
 
 class ParamWithOutValue final : public ParamBase {
 public:
-ParamWithOutValue(const std::string &name_,
-                  const std::string &shortName_,
+ParamWithOutValue(const std::string &shortName_,
+                  const std::string &name_,
                   const std::string &describtion_,
                   const std::function<void()> &func_,
                   const std::list<std::string> &dep_) :
-                  ParamBase(name_, shortName_, describtion_),
+                  ParamBase(shortName_, name_, describtion_),
                   func(func_),
                   deps(dep_) {}
     ~ParamWithOutValue() = default;

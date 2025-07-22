@@ -142,10 +142,10 @@ bool ParamBase::getEnable(){
     return mEnable;
 }
 
-ParamBase::ParamBase(const std::string &name_,
-                     const std::string &shortName_,
+ParamBase::ParamBase(const std::string &shortName_,
+                     const std::string &name_,
                      const std::string &describtion_) :
                      mEnable(false),
-                     mName(name_),
                      mShortName(shortName_),
+                     mName(name_),
                      mDescribtion(describtion_) {}
