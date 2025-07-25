@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
     cmdline->add("-c", "--creazy", "creazy mode", [] {
         cout << "creazy mode" << endl;
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 10000; i++) {
             TypeSingle<LTimer>::getInstance()->setTimer(10, [] {
                 TypeSingle<LTimer>::getInstance()->setTimer(10, [] {
                 }, 10);

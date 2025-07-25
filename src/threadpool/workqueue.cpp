@@ -36,7 +36,6 @@ void SMutex::unlock() {
 
 WorkQueue::WorkQueue(MutexType m) {
     mutex.setMutexType(m);
-    start();
 }
 
 WorkQueue::~WorkQueue() {
@@ -53,7 +52,7 @@ void WorkQueue::run() {
         return;
     }
 
-    function<void()> f = move(workqueue.front());
+    auto f = move(workqueue.front());
     workqueue.pop();
     mutex.unlock();
 
