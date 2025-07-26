@@ -13,21 +13,22 @@ using namespace std;
 class Thread::Impl {
 public:
     std::condition_variable c;
-    std::atomic<long> cStatus;
-    std::atomic<bool> bStop;
+    std::atomic<bool> bNotify; //防止虚假唤醒
+    std::atomic<bool> bStop;   //线程是否停止
     std::thread t;
 };
 
 Thread::Thread() : pImpl(std::make_unique<Impl>()) {
     pImpl->bStop = true;
-    pImpl->cStatus = 0;
+    pImpl->bNotify = false;
 
     pImpl->t = thread([this] {
         mutex localMutex;
         unique_lock<mutex> localLock(localMutex);
         while (1){
+            // 等待通知
             pImpl->c.wait(localLock, [this] {
-                return pImpl->cStatus ? pImpl->cStatus-- : false;
+                return pImpl->bNotify.load();
             });
 
             if (!pImpl->bStop)
@@ -38,13 +39,15 @@ Thread::Thread() : pImpl(std::make_unique<Impl>()) {
     });
 }
 
-Thread::~Thread() {
+Thread::~Thread() {}
+
+void Thread::start() {
+    pImpl->bNotify.store(true);
+    pImpl->c.notify_one();
+}
+
+void Thread::destory() {
     pImpl->bStop = false;
     start();
     pImpl->t.join();
-}
-
-void Thread::start() {
-    pImpl->cStatus++;
-    pImpl->c.notify_one();
 }

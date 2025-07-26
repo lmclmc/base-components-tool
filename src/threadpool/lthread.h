@@ -21,6 +21,8 @@ public:
 
 protected:
     void start();
+    void destory();
+
     virtual void run() = 0;
 
 private:
