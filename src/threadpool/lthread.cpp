@@ -41,6 +41,11 @@ Thread::Thread() : pImpl(std::make_unique<Impl>()) {
 
 Thread::~Thread() {}
 
+void Thread::stop() {
+    //必选虚假唤醒由用户来控制条件变量
+    pImpl->bNotify.store(false);
+}
+
 void Thread::start() {
     pImpl->bNotify.store(true);
     pImpl->c.notify_one();

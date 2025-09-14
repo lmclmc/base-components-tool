@@ -21,6 +21,7 @@ public:
 
 protected:
     void start();
+    void stop();
     void destory();
 
     virtual void run() = 0;

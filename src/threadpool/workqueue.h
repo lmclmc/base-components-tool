@@ -71,6 +71,8 @@ public:
         return returnRes;
     }
 
+    void stopWorkQueue();
+
 protected:
     void run() override;
 

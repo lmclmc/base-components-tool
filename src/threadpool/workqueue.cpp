@@ -63,3 +63,7 @@ void WorkQueue::run() {
 
     f();
 }
+
+void WorkQueue::stopWorkQueue() {
+    stop();
+}

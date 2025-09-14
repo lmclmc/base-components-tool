@@ -56,9 +56,11 @@ public:
 
             this->taskQueue.clear();
 
-            if (!this->bStatus)
+            if (!this->bStatus) {
+                w->stopWorkQueue();
                 return;
-
+            }
+                
             this->task();
         });
     }
