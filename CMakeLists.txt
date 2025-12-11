@@ -13,6 +13,9 @@ include_directories(src)
 include_directories(${CMAKE_INCLUDE_PATH})
 
 add_subdirectory(src/)
-add_subdirectory(demo/)
+
+if(IS_BUILD_DEMO)
+  add_subdirectory(demo/)
+endif()
 
 configure_file(version.h.in version.h @ONLY)
