@@ -11,17 +11,19 @@ add_library(lmcbase SHARED ${BASE_FILES})
 
 target_link_libraries(lmcbase pthread)
 
-install(DIRECTORY ${PROJECT_BINARY_DIR}/src/liblmcbase.so DESTINATION 
-                  ${PROJECT_BINARY_DIR}/install/lib/)
-install(FILES log/log.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/log/)
-install(FILES threadpool/lthread.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/threadpool/)
-install(FILES threadpool/workqueue.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/threadpool/)
-install(FILES timer/ltimer.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/timer/)
-install(FILES cmdline/cmdline.h DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/cmdline/)
-install(DIRECTORY util DESTINATION 
-              ${PROJECT_BINARY_DIR}/install/include/)
+if(IS_INSTALL)
+    install(DIRECTORY ${PROJECT_BINARY_DIR}/src/liblmcbase.so DESTINATION 
+                    ${PROJECT_BINARY_DIR}/install/lib/)
+    install(FILES log/log.h DESTINATION 
+                ${PROJECT_BINARY_DIR}/install/include/log/)
+    install(FILES threadpool/lthread.h DESTINATION 
+                ${PROJECT_BINARY_DIR}/install/include/threadpool/)
+    install(FILES threadpool/workqueue.h DESTINATION 
+                ${PROJECT_BINARY_DIR}/install/include/threadpool/)
+    install(FILES timer/ltimer.h DESTINATION 
+                ${PROJECT_BINARY_DIR}/install/include/timer/)
+    install(FILES cmdline/cmdline.h DESTINATION 
+                ${PROJECT_BINARY_DIR}/install/include/cmdline/)
+    install(DIRECTORY util DESTINATION 
+                ${PROJECT_BINARY_DIR}/install/include/)
+endif()
