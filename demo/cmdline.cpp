@@ -2,7 +2,6 @@
 
 #include "cmdline/cmdline.h"
 #include "util/single.hpp"
-#include "log/log.h"
 
 #include <vector>
 #include <list>
