@@ -7,7 +7,7 @@ aux_source_directory(./single/ BASE_FILES)
 aux_source_directory(./cmdline/ BASE_FILES)
 aux_source_directory(./log/ BASE_FILES)
 
-add_library(lmcbase SHARED ${BASE_FILES})
+add_library(lmcbase ${BASE_FILES})
 
 target_link_libraries(lmcbase pthread)
 

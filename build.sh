@@ -9,7 +9,8 @@ mkdir ${BUILD_DIR}
 pushd ${BUILD_DIR}
 
 cmake ${CURRENT_DIR} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-std=c++11 -g"\
-                     -DCMAKE_INCLUDE_PATH="${BUILD_DIR}" -DIS_BUILD_DEMO=ON -DIS_INSTALL=ON
+                     -DCMAKE_INCLUDE_PATH="${BUILD_DIR}" -DIS_BUILD_DEMO=OFF \
+                     -DBUILD_SHARED_LIBS=ON -DIS_INSTALL=ON
 
 make -j${CPU_NUM}
 make install
