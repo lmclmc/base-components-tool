@@ -11,8 +11,23 @@
 #include <mutex>
 #include <unistd.h>
 #include <string.h>
+#include <atomic>
+#include <cxxabi.h>
 #include "type.hpp"
 namespace lmc {
+
+
+// 获取可读的类型名
+template<typename T>
+std::string getTypeName() {
+    int status = 0;
+    char* demangled = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status);
+    std::string name = (status == 0) ? demangled : typeid(T).name();
+    free(demangled); // 释放abi分配的内存
+    return name;
+}
+
+
 template<typename T>
 class TypeSingle {
 public:
@@ -26,32 +41,35 @@ public:
                       "\033[93mReferences, pointers and fundamental type "
                       "\n are not allowed as parameters\n  \033[0m");
 
-        if (nullptr == instance) {
-            sMutex.lock();
-            if (nullptr == instance) {
-                instance = new (std::nothrow) T(args...);
-                if (!instance) {
+        T *inst = instance.load(std::memory_order_acquire);
+        if (inst == nullptr) {
+            std::lock_guard<std::mutex> lock(sMutex);
+            inst = instance.load(std::memory_order_relaxed);
+            if (inst == nullptr) {
+                inst = new (std::nothrow) T(std::forward<Args>(args)...);
+                if (!inst) {
                     std::cout << "create " << typeid(T).name()
                               << " error, reason is " << strerror(errno)
                               << ", exit now... " << std::endl;
                     exit(0);
-                } 
+                }
+                instance.store(inst, std::memory_order_release); // 原子存储
             }
-            sMutex.unlock();
         }
 
-        return instance;
+        return inst;
     }
 
     inline static void destory() {
-        if (instance) {
-            sMutex.lock();
-            if (instance) {
-                T *tmpInstance = instance;
-                instance = nullptr;
-                delete tmpInstance;
+        T* inst = instance.load(std::memory_order_acquire);
+        if (inst) {
+            std::lock_guard<std::mutex> lock(sMutex);
+            inst = instance.load(std::memory_order_relaxed);
+            if (inst) {
+                instance.store(nullptr, std::memory_order_release);
+                delete inst;
+                std::cout << "Singleton [" << getTypeName<T>() << "] destroyed" << std::endl;
             }
-            sMutex.unlock();
         }
     }
 
@@ -63,14 +81,14 @@ public:
 
 private:
     static std::mutex sMutex;
-    static T *instance;
+    static std::atomic<T *> instance;
 };
 
 template<typename T>
 std::mutex TypeSingle<T>::sMutex;
 
 template<typename T>
-T *TypeSingle<T>::instance = nullptr;
-};
+std::atomic<T *> TypeSingle<T>::instance{nullptr};
+}
 
 #endif

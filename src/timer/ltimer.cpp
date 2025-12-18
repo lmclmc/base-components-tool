@@ -5,6 +5,7 @@
 
 #include <thread>
 #include <list>
+#include <unistd.h>
 
 using namespace lmc;
 using namespace std::chrono;
@@ -97,6 +98,7 @@ LTimer::LTimer() : pImpl(std::make_unique<Impl>()) {}
 LTimer::~LTimer() {
     clearTimer();
     stopTimer();
+    sleep(1);
     pImpl->w = nullptr;
     pImpl.reset();
 }
