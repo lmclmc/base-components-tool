@@ -10,13 +10,15 @@ public:
 
     inline void lock() {
         bool expect = false;
-        while (!flag_.compare_exchange_weak(expect, true)) {
+        while (!flag_.compare_exchange_weak(expect, true,
+                                            std::memory_order_acquire,
+                                            std::memory_order_relaxed)) {
             expect = false;
         }
     }
 
     inline void unlock() {
-        flag_.store(false);
+        flag_.store(false, std::memory_order_release);
     }
 
 private:
